@@ -35,7 +35,7 @@ export default function LojistaPerfilPage() {
             <div>
               <div className="flex items-center gap-2">
                 <h1 className="text-xl sm:text-2xl font-black text-white">{store?.fantasyName || user?.name}</h1>
-                <ShieldCheck className="w-5 h-5 text-emerald-400" title="Loja Credenciada no PeçaAki" />
+                <span title="Loja Credenciada no PeçaAki"><ShieldCheck className="w-5 h-5 text-emerald-400" /></span>
               </div>
               <p className="text-xs text-slate-400">{store?.companyName}</p>
             </div>

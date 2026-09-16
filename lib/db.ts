@@ -523,7 +523,7 @@ export const db = {
           include: {
             vehicle: true,
             user: { select: { name: true, city: true, neighborhood: true } },
-            proposals: []
+            proposals: true
           }
         })
       } catch (e) {

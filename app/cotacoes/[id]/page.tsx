@@ -202,7 +202,7 @@ export default function QuoteDetailPage() {
                   <div>
                     <h3 className="font-extrabold text-white text-base flex items-center gap-1.5">
                       {p.storeProfile.fantasyName}
-                      <ShieldCheck className="w-4 h-4 text-emerald-400" title="Loja Credenciada" />
+                      <span title="Loja Credenciada"><ShieldCheck className="w-4 h-4 text-emerald-400" /></span>
                     </h3>
                     <p className="text-xs text-slate-400 flex items-center gap-1 mt-0.5">
                       <MapPin className="w-3 h-3 text-amber-400" /> Bairro {p.storeProfile.neighborhood}, {p.storeProfile.city}

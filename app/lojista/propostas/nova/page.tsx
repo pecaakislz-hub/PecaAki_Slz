@@ -1,11 +1,11 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, Suspense } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import { Store, ArrowLeft, DollarSign, Clock, Truck, ShieldCheck, AlertCircle, ArrowRight } from 'lucide-react'
 
-export default function NewProposalPage() {
+function NewProposalContent() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const cotacaoId = searchParams.get('cotacaoId')
@@ -219,5 +219,13 @@ export default function NewProposalPage() {
         </button>
       </form>
     </div>
+  )
+}
+
+export default function NewProposalPage() {
+  return (
+    <Suspense fallback={<div className="min-h-screen bg-slate-950 text-slate-400 p-8 flex items-center justify-center">Carregando formulário de proposta...</div>}>
+      <NewProposalContent />
+    </Suspense>
   )
 }

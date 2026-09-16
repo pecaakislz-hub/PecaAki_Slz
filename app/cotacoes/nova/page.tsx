@@ -1,11 +1,11 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, Suspense } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import { PlusCircle, Car, Camera, MapPin, Truck, CheckCircle2, AlertCircle, ArrowRight, UploadCloud, X } from 'lucide-react'
 
-export default function NewQuotePage() {
+function NewQuoteContent() {
   const router = useRouter()
   const searchParams = useSearchParams()
 
@@ -350,5 +350,13 @@ export default function NewQuotePage() {
         </button>
       </form>
     </div>
+  )
+}
+
+export default function NewQuotePage() {
+  return (
+    <Suspense fallback={<div className="min-h-screen bg-slate-950 text-slate-400 p-8 flex items-center justify-center">Carregando formulário de cotação...</div>}>
+      <NewQuoteContent />
+    </Suspense>
   )
 }
