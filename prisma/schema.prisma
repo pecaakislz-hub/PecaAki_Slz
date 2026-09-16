@@ -1,0 +1,110 @@
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+model User {
+  id           String        @id @default(uuid())
+  name         String
+  email        String        @unique
+  passwordHash String
+  phone        String
+  role         String        @default("COMPRADOR") // COMPRADOR, LOJISTA, ADMIN
+  city         String        @default("São Luís")
+  neighborhood String
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+  
+  storeProfile  StoreProfile?
+  vehicles      Vehicle[]
+  quoteRequests QuoteRequest[]
+  notifications Notification[]
+}
+
+model StoreProfile {
+  id            String     @id @default(uuid())
+  userId        String     @unique
+  user          User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  companyName   String
+  fantasyName   String
+  cnpjCpf       String
+  phone         String
+  city          String
+  neighborhood  String
+  address       String
+  categories    String     // Armazenado como JSON array string
+  vehicleBrands String     // Armazenado como JSON array string
+  isVerified    Boolean    @default(true)
+  createdAt     DateTime   @default(now())
+
+  proposals     Proposal[]
+}
+
+model Vehicle {
+  id            String         @id @default(uuid())
+  userId        String
+  user          User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  type          String         @default("CARRO") // CARRO, MOTO
+  brand         String
+  model         String
+  year          String
+  engine        String
+  plate         String?
+  createdAt     DateTime       @default(now())
+
+  quoteRequests QuoteRequest[]
+}
+
+model QuoteRequest {
+  id                 String     @id @default(uuid())
+  userId             String
+  user               User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  vehicleId          String?
+  vehicle            Vehicle?   @relation(fields: [vehicleId], references: [id], onDelete: SetNull)
+  vehicleText        String?
+  partName           String
+  description        String
+  category           String     @default("Geral")
+  deliveryPreference String     @default("DELIVERY") // DELIVERY, PICKUP
+  targetCities       String     // Armazenado como JSON array string
+  photos             String     // Armazenado como JSON array string
+  status             String     @default("OPEN") // OPEN, ANSWERED, ACCEPTED, CLOSED
+  createdAt          DateTime   @default(now())
+  updatedAt          DateTime   @updatedAt
+
+  proposals          Proposal[]
+}
+
+model Proposal {
+  id               String       @id @default(uuid())
+  quoteRequestId   String
+  quoteRequest     QuoteRequest @relation(fields: [quoteRequestId], references: [id], onDelete: Cascade)
+  storeProfileId   String
+  storeProfile     StoreProfile @relation(fields: [storeProfileId], references: [id], onDelete: Cascade)
+  availability     String       // IN_STOCK, ON_ORDER
+  condition        String       // NEW, ORIGINAL, SIMILAR, USED
+  cashPrice        Float
+  installmentPrice Float?
+  deliveryFee      Float        @default(0.0)
+  deliveryTime     String
+  notes            String?
+  photoUrl         String?
+  status           String       @default("PENDING") // PENDING, ACCEPTED, REJECTED
+  createdAt        DateTime     @default(now())
+}
+
+model Notification {
+  id        String   @id @default(uuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  title     String
+  message   String
+  link      String?
+  read      Boolean  @default(false)
+  createdAt DateTime @default(now())
+}
