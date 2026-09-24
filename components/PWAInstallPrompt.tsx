@@ -57,9 +57,11 @@ export default function PWAInstallPrompt() {
       {showInstallBanner && (
         <div className="fixed bottom-4 right-4 left-4 md:left-auto md:w-96 bg-slate-900 text-white p-4 rounded-2xl shadow-2xl border border-amber-500/40 z-50 flex items-center justify-between gap-3 animate-bounce-subtle">
           <div className="flex items-center gap-3">
-            <div className="w-12 h-12 rounded-xl bg-amber-500 flex items-center justify-center text-slate-950 font-black text-xl shrink-0">
-              P⚡
-            </div>
+            <img
+              src="/PeçaAki_Logomarca_SF.png"
+              alt="PeçaAki Logo"
+              className="h-10 w-auto object-contain shrink-0"
+            />
             <div>
               <h4 className="font-bold text-sm text-white flex items-center gap-1">
                 Instalar PeçaAki

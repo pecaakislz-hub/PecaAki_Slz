@@ -10,12 +10,11 @@ export default function Footer() {
           {/* Coluna 1: Marca & Região */}
           <div className="space-y-3">
             <div className="flex items-center gap-2">
-              <div className="w-8 h-8 rounded-lg bg-amber-500 flex items-center justify-center font-bold text-slate-950 text-lg">
-                P⚡
-              </div>
-              <span className="font-bold text-lg text-slate-900 dark:text-white">
-                Peça<span className="text-amber-500 dark:text-amber-400">Aki</span>
-              </span>
+              <img
+                src="/PeçaAki_Logomarca_SF.png"
+                alt="PeçaAki Logo"
+                className="h-9 w-auto object-contain"
+              />
             </div>
             <p className="text-xs text-slate-600 dark:text-slate-400 leading-relaxed">
               Marketplace reverso de cotação de autopeças e motopeças líder na Região Metropolitana da Grande São Luís.

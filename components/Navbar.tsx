@@ -32,19 +32,16 @@ export default function Navbar() {
     <header className="sticky top-0 z-50 bg-white/95 dark:bg-slate-900/95 backdrop-blur-md text-slate-900 dark:text-white shadow-sm dark:shadow-slate-950/50 border-b border-slate-200 dark:border-slate-800 transition-colors duration-200">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16">
-          {/* Logo e Marca */}
-          <Link href="/" className="flex items-center gap-2 group">
-            <div className="w-10 h-10 rounded-xl bg-amber-500 flex items-center justify-center font-bold text-slate-950 text-xl shadow-lg shadow-amber-500/20 group-hover:scale-105 transition-transform">
-              P⚡
-            </div>
-            <div className="flex flex-col">
-              <span className="font-extrabold text-xl tracking-tight text-slate-900 dark:text-white flex items-center gap-1">
-                Peça<span className="text-amber-500 dark:text-amber-400">Aki</span>
-              </span>
-              <span className="text-[10px] text-amber-600 dark:text-amber-300 font-medium tracking-wider uppercase">
-                Grande São Luís - MA
-              </span>
-            </div>
+          {/* Logo e Marca Oficial */}
+          <Link href="/" className="flex items-center gap-2 group py-1">
+            <img
+              src="/PeçaAki_Logomarca_SF.png"
+              alt="PeçaAki Logo"
+              className="h-10 sm:h-11 w-auto object-contain group-hover:scale-105 transition-transform"
+            />
+            <span className="hidden sm:inline-block text-[10px] bg-amber-500/10 text-amber-600 dark:text-amber-300 font-bold px-2 py-0.5 rounded-full border border-amber-500/20 uppercase tracking-wider">
+              Grande São Luís - MA
+            </span>
           </Link>
 
           {/* Links para Desktop */}

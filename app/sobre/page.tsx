@@ -11,9 +11,11 @@ export default function AboutPage() {
     <div className="max-w-4xl mx-auto py-8 space-y-8">
       {/* HEADER HERO */}
       <div className="bg-slate-900 border border-slate-800 rounded-3xl p-6 sm:p-12 space-y-4 text-center relative overflow-hidden">
-        <div className="w-16 h-16 rounded-2xl bg-amber-500 flex items-center justify-center font-black text-slate-950 text-3xl mx-auto shadow-xl shadow-amber-500/20">
-          P⚡
-        </div>
+        <img
+          src="/PeçaAki_Logomarca_SF.png"
+          alt="PeçaAki Logo"
+          className="h-16 sm:h-20 w-auto mx-auto object-contain drop-shadow-lg mb-2"
+        />
         <h1 className="text-3xl sm:text-5xl font-black text-white tracking-tight">
           Sobre o <span className="text-amber-400">PeçaAki</span>
         </h1>

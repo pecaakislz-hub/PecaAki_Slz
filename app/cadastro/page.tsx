@@ -91,9 +91,11 @@ function RegisterContent() {
     <div className="max-w-xl mx-auto py-8 px-4">
       <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-6 sm:p-8 shadow-xl dark:shadow-2xl space-y-6 transition-colors duration-200">
         <div className="text-center space-y-2">
-          <div className="w-12 h-12 rounded-2xl bg-amber-500 flex items-center justify-center font-black text-slate-950 text-2xl mx-auto shadow-lg shadow-amber-500/20">
-            P⚡
-          </div>
+          <img
+            src="/PeçaAki_Logomarca_SF.png"
+            alt="PeçaAki Logo"
+            className="h-14 sm:h-16 w-auto mx-auto object-contain drop-shadow-md mb-2"
+          />
           <h1 className="text-2xl font-bold text-slate-900 dark:text-white">Criar Conta no PeçaAki</h1>
           <p className="text-xs text-slate-600 dark:text-slate-400">Selecione seu perfil de acesso na Grande São Luís</p>
         </div>
