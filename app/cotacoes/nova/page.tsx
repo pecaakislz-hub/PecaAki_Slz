@@ -8,6 +8,8 @@ import { PlusCircle, Car, Camera, MapPin, Truck, CheckCircle2, AlertCircle, Arro
 function NewQuoteContent() {
   const router = useRouter()
   const searchParams = useSearchParams()
+  const service = searchParams.get('service')
+  const isServiceRequest = service === 'oficina' || service === 'guincho'
 
   const [vehicles, setVehicles] = useState<any[]>([])
   const [vehicleId, setVehicleId] = useState<string>('')
@@ -33,6 +35,8 @@ function NewQuoteContent() {
   const [error, setError] = useState('')
 
   useEffect(() => {
+    if (service === 'oficina') setCategory('Oficina')
+    if (service === 'guincho') setCategory('Guincho')
     // Buscar veículos da garagem
     fetch('/api/vehicles')
       .then((res) => res.json())
@@ -48,7 +52,7 @@ function NewQuoteContent() {
         }
       })
       .catch(() => {})
-  }, [searchParams])
+  }, [searchParams, service])
 
   const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     if (!e.target.files || e.target.files.length === 0) return
@@ -133,9 +137,9 @@ function NewQuoteContent() {
         <div className="flex items-center gap-2 text-amber-400 text-xs font-bold uppercase tracking-wider">
           <PlusCircle className="w-4 h-4" /> Cotação Sob Demanda
         </div>
-        <h1 className="text-2xl sm:text-3xl font-extrabold text-white">Solicitar Orçamento de Peça</h1>
+        <h1 className="text-2xl sm:text-3xl font-extrabold text-white">{isServiceRequest ? `Solicitar atendimento de ${service === 'oficina' ? 'oficina' : 'guincho'}` : 'Solicitar Orçamento de Peça'}</h1>
         <p className="text-xs sm:text-sm text-slate-300">
-          Preencha os detalhes e receba propostas das lojas de autopeças e motopeças da Grande São Luís em minutos.
+          {isServiceRequest ? 'Descreva sua necessidade e conecte-se a prestadores da Grande São Luís.' : 'Preencha os detalhes e receba propostas das lojas de autopeças e motopeças da Grande São Luís em minutos.'}
         </p>
       </div>
 
@@ -194,18 +198,18 @@ function NewQuoteContent() {
         {/* SEÇÃO 2: DETALHES DA PEÇA E FOTO */}
         <div className="bg-slate-900 p-6 rounded-2xl border border-slate-800 space-y-4">
           <h3 className="text-base font-bold text-white flex items-center gap-2">
-            <Camera className="w-5 h-5 text-amber-400" /> 2. Qual a Peça Necessária?
+            <Camera className="w-5 h-5 text-amber-400" /> 2. {isServiceRequest ? 'Descreva o atendimento' : 'Qual a Peça Necessária?'}
           </h3>
 
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
             <div className="sm:col-span-2">
-              <label className="block text-xs font-semibold text-slate-300 mb-1">Nome da Peça</label>
+              <label className="block text-xs font-semibold text-slate-300 mb-1">{isServiceRequest ? 'Necessidade' : 'Nome da Peça'}</label>
               <input
                 type="text"
                 required
                 value={partName}
                 onChange={(e) => setPartName(e.target.value)}
-                placeholder="Ex: Par de discos de freio ventilados / Kit Embreagem"
+                placeholder={isServiceRequest ? 'Ex: Revisão, pane mecânica, troca de pneu ou reboque' : 'Ex: Par de discos de freio ventilados / Kit Embreagem'}
                 className="w-full bg-slate-950 border border-slate-800 rounded-xl py-3 px-3 text-sm text-white focus:outline-none focus:border-amber-500"
               />
             </div>
