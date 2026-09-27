@@ -32,7 +32,12 @@ function PanelContent() {
     } catch { setError('Não foi possível carregar o painel agora.') }
     finally { setLoading(false) }
   }
-  useEffect(() => { load() }, [])
+  useEffect(() => {
+    load()
+    const refresh = () => load()
+    window.addEventListener('pecaaki:refresh-dashboard', refresh)
+    return () => window.removeEventListener('pecaaki:refresh-dashboard', refresh)
+  }, [])
   const quotes = dashboard?.quoteRequests || []
   const purchases = dashboard?.purchases || []
   const reviews = dashboard?.reviews || []
