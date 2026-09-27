@@ -1,232 +1,90 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import Link from 'next/link'
-import { useRouter, usePathname } from 'next/navigation'
-import { Car, Wrench, Store, PlusCircle, User, LogOut, Menu, X } from 'lucide-react'
+import { usePathname, useRouter } from 'next/navigation'
+import { ChevronDown, ChevronRight, FileText, LogIn, LogOut, Package, Settings, Star, UserRound, X } from 'lucide-react'
 import ThemeToggle from './ThemeToggle'
 
+type UserSession = { id: string; name: string; email: string; role: string; storeProfile?: unknown }
+
+const roleLabels: Record<string, string> = {
+  COMPRADOR: 'Cliente comprador', VENDEDOR: 'Vendedor', LOJISTA: 'Vendedor',
+  OFICINA: 'Oficina', GUINCHO: 'Guincho', ADMIN: 'Administrador',
+}
+
 export default function Navbar() {
-  const [user, setUser] = useState<any>(null)
-  const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
+  const [user, setUser] = useState<UserSession | null>(null)
+  const [loading, setLoading] = useState(true)
+  const [userMenuOpen, setUserMenuOpen] = useState(false)
+  const [quotesOpen, setQuotesOpen] = useState(false)
   const router = useRouter()
   const pathname = usePathname()
 
   useEffect(() => {
-    fetch('/api/auth/me')
-      .then((res) => res.json())
-      .then((data) => {
-        if (data.user) setUser(data.user)
-      })
-      .catch(() => {})
+    fetch('/api/auth/me', { cache: 'no-store' })
+      .then((response) => response.json())
+      .then((data) => setUser(data.user || null))
+      .catch(() => setUser(null))
+      .finally(() => setLoading(false))
   }, [pathname])
 
   const handleLogout = async () => {
     await fetch('/api/auth/logout', { method: 'POST' })
     setUser(null)
+    setUserMenuOpen(false)
+    setQuotesOpen(false)
     router.push('/')
     router.refresh()
   }
 
+  const closeMenu = () => { setUserMenuOpen(false); setQuotesOpen(false) }
+  const menuButtonClass = 'w-full flex items-center gap-2.5 px-4 py-2.5 text-left text-xs font-semibold transition-colors hover:bg-slate-50 dark:hover:bg-slate-800'
+
   return (
-    <header className="sticky top-0 z-50 bg-white/95 dark:bg-slate-900/95 backdrop-blur-md text-slate-900 dark:text-white shadow-sm dark:shadow-slate-950/50 border-b border-slate-200 dark:border-slate-800 transition-colors duration-200">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex items-center justify-between h-16">
-          {/* Logo e Marca Oficial */}
-          <Link href="/" className="flex items-center gap-2 group py-1">
-            <img
-              src="/PeçaAki_Logomarca_SF.png"
-              alt="PeçaAki Logo"
-              className="h-10 sm:h-11 w-auto object-contain group-hover:scale-105 transition-transform"
-            />
-            <span className="hidden sm:inline-block text-[10px] bg-amber-500/10 text-amber-600 dark:text-amber-300 font-bold px-2 py-0.5 rounded-full border border-amber-500/20 uppercase tracking-wider">
-              Grande São Luís - MA
-            </span>
-          </Link>
+    <header className="sticky top-0 z-50 border-b border-slate-200 bg-white/95 shadow-sm backdrop-blur-md transition-colors dark:border-slate-800 dark:bg-slate-950/95">
+      <div className="mx-auto flex h-16 max-w-7xl items-center justify-between gap-3 px-4 sm:px-6 lg:px-8">
+        <Link href="/" className="flex min-w-0 items-center gap-2.5 group" onClick={closeMenu}>
+          <img src="/PeçaAki_Logomarca_SF.png" alt="PeçaAki Logo" className="h-10 w-auto object-contain transition-transform group-hover:scale-105 sm:h-11" />
+          <span className="hidden truncate text-[10px] font-bold uppercase tracking-wider text-amber-600 dark:text-amber-400 sm:inline-block">Grande São Luís - MA</span>
+        </Link>
 
-          {/* Links para Desktop */}
-          <nav className="hidden md:flex items-center gap-6 text-sm font-medium">
-            <Link href="/" className={`hover:text-amber-500 dark:hover:text-amber-400 transition-colors ${pathname === '/' ? 'text-amber-600 dark:text-amber-400 font-semibold' : 'text-slate-700 dark:text-slate-300'}`}>
-              Início
-            </Link>
-
-            {user?.role === 'COMPRADOR' && (
-              <>
-                <Link href="/garagem" className={`flex items-center gap-1.5 hover:text-amber-500 dark:hover:text-amber-400 transition-colors ${pathname === '/garagem' ? 'text-amber-600 dark:text-amber-400 font-semibold' : 'text-slate-700 dark:text-slate-300'}`}>
-                  <Car className="w-4 h-4 text-amber-500 dark:text-amber-400" />
-                  Minha Garagem
-                </Link>
-                <Link href="/cotacoes" className={`hover:text-amber-500 dark:hover:text-amber-400 transition-colors ${pathname === '/cotacoes' ? 'text-amber-600 dark:text-amber-400 font-semibold' : 'text-slate-700 dark:text-slate-300'}`}>
-                  Minhas Cotações
-                </Link>
-                <Link href="/cotacoes/nova" className="flex items-center gap-1.5 bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold px-3.5 py-1.5 rounded-lg shadow-md hover:shadow-amber-500/30 transition-all">
-                  <PlusCircle className="w-4 h-4" />
-                  Pedir Peça
-                </Link>
-              </>
-            )}
-
-            {user?.role === 'LOJISTA' && (
-              <>
-                <Link href="/lojista/radar" className={`flex items-center gap-1.5 text-amber-600 dark:text-amber-400 hover:text-amber-500 font-semibold ${pathname === '/lojista/radar' ? 'underline decoration-2 underline-offset-4' : ''}`}>
-                  <Store className="w-4 h-4" />
-                  Radar de Cotações (Ao Vivo)
-                </Link>
-                <Link href="/lojista/perfil" className={`hover:text-amber-500 dark:hover:text-amber-400 transition-colors ${pathname === '/lojista/perfil' ? 'text-amber-600 dark:text-amber-400 font-semibold' : 'text-slate-700 dark:text-slate-300'}`}>
-                  Minha Loja
-                </Link>
-              </>
-            )}
-
-            {!user && (
-              <>
-                <Link href="/cotacoes/nova" className="flex items-center gap-1.5 bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold px-3.5 py-1.5 rounded-lg shadow-md hover:shadow-amber-500/30 transition-all">
-                  <PlusCircle className="w-4 h-4" />
-                  Pedir Peça
-                </Link>
-                <Link href="/lojista/radar" className="flex items-center gap-1 text-slate-700 dark:text-slate-300 hover:text-amber-500 dark:hover:text-amber-400">
-                  <Store className="w-4 h-4" />
-                  Sou Lojista
-                </Link>
-              </>
-            )}
-          </nav>
-
-          {/* Área de Perfil / Login e Botão de Tema */}
-          <div className="hidden md:flex items-center gap-4">
-            <ThemeToggle showLabel={false} />
-
-            {user ? (
-              <div className="flex items-center gap-3 bg-slate-100 dark:bg-slate-800/80 px-3 py-1.5 rounded-xl border border-slate-200 dark:border-slate-700">
-                <div className="flex flex-col text-right">
-                  <span className="text-xs font-semibold text-slate-900 dark:text-white">{user.name}</span>
-                  <span className="text-[10px] text-amber-600 dark:text-amber-400 uppercase font-medium">
-                    {user.role === 'LOJISTA' ? 'Lojista Credenciado' : 'Comprador'}
-                  </span>
-                </div>
-                <button
-                  onClick={handleLogout}
-                  title="Sair da Conta"
-                  className="p-1.5 text-slate-500 dark:text-slate-400 hover:text-rose-500 hover:bg-slate-200 dark:hover:bg-slate-700/50 rounded-lg transition-colors"
-                >
-                  <LogOut className="w-4 h-4" />
-                </button>
-              </div>
-            ) : (
-              <div className="flex items-center gap-2">
-                <Link href="/login" className="text-slate-700 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white px-3 py-1.5 text-sm font-medium">
-                  Entrar
-                </Link>
-                <Link href="/cadastro" className="bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-amber-600 dark:text-amber-400 border border-amber-500/30 px-3.5 py-1.5 rounded-lg text-sm font-semibold transition-colors">
-                  Cadastrar
-                </Link>
-              </div>
-            )}
-          </div>
-
-          {/* Botões Mobile (Tema + Menu Hamburger) */}
-          <div className="md:hidden flex items-center gap-2">
-            <ThemeToggle showLabel={false} />
-            <button
-              onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-              className="p-2 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white rounded-lg focus:outline-none"
-            >
-              {mobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
+        <div className="flex shrink-0 items-center gap-2 sm:gap-3">
+          {loading ? <span className="h-9 w-16 animate-pulse rounded-xl bg-slate-100 dark:bg-slate-800" aria-hidden="true" /> : user ? (
+            <button type="button" onClick={handleLogout} className="inline-flex items-center gap-1.5 rounded-xl border border-rose-200 bg-rose-50 px-3 py-2 text-xs font-bold text-rose-700 transition-colors hover:bg-rose-100 dark:border-rose-900/60 dark:bg-rose-950/30 dark:text-rose-300 dark:hover:bg-rose-950/60" title="Encerrar sessão">
+              <LogOut className="h-4 w-4" /><span className="hidden sm:inline">Sair</span>
             </button>
-          </div>
-        </div>
-      </div>
-
-      {/* Menu Mobile */}
-      {mobileMenuOpen && (
-        <div className="md:hidden bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800 px-4 pt-2 pb-6 space-y-3 shadow-lg">
-          <div className="flex items-center justify-between pb-2 border-b border-slate-100 dark:border-slate-800">
-            <span className="text-xs font-semibold text-slate-500 dark:text-slate-400">Alternar Aparência:</span>
-            <ThemeToggle showLabel={true} />
-          </div>
-
-          <Link
-            href="/"
-            onClick={() => setMobileMenuOpen(false)}
-            className="block px-3 py-2 rounded-md text-base font-medium text-slate-800 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800"
-          >
-            Início
-          </Link>
-
-          <Link
-            href="/cotacoes/nova"
-            onClick={() => setMobileMenuOpen(false)}
-            className="flex items-center gap-2 px-3 py-2 rounded-md text-base font-bold bg-amber-500 text-slate-950"
-          >
-            <PlusCircle className="w-5 h-5" />
-            Pedir Peça Agora
-          </Link>
-
-          {user?.role === 'COMPRADOR' && (
-            <>
-              <Link
-                href="/garagem"
-                onClick={() => setMobileMenuOpen(false)}
-                className="flex items-center gap-2 px-3 py-2 rounded-md text-base font-medium text-slate-800 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800"
-              >
-                <Car className="w-5 h-5 text-amber-500 dark:text-amber-400" />
-                Minha Garagem Virtual
-              </Link>
-              <Link
-                href="/cotacoes"
-                onClick={() => setMobileMenuOpen(false)}
-                className="block px-3 py-2 rounded-md text-base font-medium text-slate-800 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800"
-              >
-                Minhas Cotações
-              </Link>
-            </>
+          ) : (
+            <Link href="/login" className="inline-flex items-center gap-1.5 rounded-xl border border-amber-500/40 bg-amber-500/10 px-3 py-2 text-xs font-bold text-amber-700 transition-colors hover:bg-amber-500/20 dark:text-amber-300">
+              <LogIn className="h-4 w-4" /><span>Entrar</span>
+            </Link>
           )}
 
-          <Link
-            href="/lojista/radar"
-            onClick={() => setMobileMenuOpen(false)}
-            className="flex items-center gap-2 px-3 py-2 rounded-md text-base font-medium text-amber-600 dark:text-amber-400 hover:bg-slate-100 dark:hover:bg-slate-800"
-          >
-            <Store className="w-5 h-5" />
-            Radar do Lojista (Ao Vivo)
-          </Link>
+          <div className="relative">
+            <button type="button" onClick={() => { setUserMenuOpen((open) => !open); setQuotesOpen(false) }} aria-expanded={userMenuOpen} aria-label={user ? `Abrir espaço de ${user.name}` : 'Abrir espaço do usuário'} className={`inline-flex items-center gap-1.5 rounded-xl border px-3 py-2 text-xs font-bold transition-colors ${user ? 'border-emerald-300 bg-emerald-50 text-emerald-700 hover:bg-emerald-100 dark:border-emerald-800 dark:bg-emerald-950/30 dark:text-emerald-300 dark:hover:bg-emerald-950/60' : 'border-rose-300 bg-rose-50 text-rose-700 hover:bg-rose-100 dark:border-rose-900/60 dark:bg-rose-950/30 dark:text-rose-300 dark:hover:bg-rose-950/60'}`}>
+              <UserRound className="h-4 w-4" /><span className="hidden max-w-[130px] truncate sm:inline">{user ? user.name : 'Usuário'}</span><ChevronDown className={`h-3.5 w-3.5 transition-transform ${userMenuOpen ? 'rotate-180' : ''}`} />
+            </button>
 
-          <div className="pt-4 border-t border-slate-200 dark:border-slate-800">
-            {user ? (
-              <div className="flex items-center justify-between px-3 py-2 bg-slate-100 dark:bg-slate-800 rounded-lg">
-                <div>
-                  <div className="font-semibold text-slate-900 dark:text-white text-sm">{user.name}</div>
-                  <div className="text-xs text-amber-600 dark:text-amber-400">{user.role}</div>
+            {userMenuOpen && <div className="absolute right-0 mt-2 w-[min(20rem,calc(100vw-2rem))] overflow-hidden rounded-2xl border border-slate-200 bg-white py-2 text-slate-800 shadow-2xl dark:border-slate-800 dark:bg-slate-900 dark:text-slate-100">
+              <div className="flex items-start justify-between border-b border-slate-100 px-4 pb-3 dark:border-slate-800">
+                <div className="min-w-0"><p className="truncate text-sm font-black">{user ? user.name : 'Visitante'}</p><p className="truncate text-[11px] text-slate-500 dark:text-slate-400">{user ? roleLabels[user.role] || user.role : 'Faça login para acessar seus recursos'}</p></div>
+                <button type="button" onClick={closeMenu} className="rounded-lg p-1 text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800" aria-label="Fechar menu"><X className="h-4 w-4" /></button>
+              </div>
+              {user ? <>
+                <div className="border-b border-slate-100 py-1 dark:border-slate-800">
+                  <button type="button" onClick={() => setQuotesOpen((open) => !open)} className={`${menuButtonClass} justify-between`}><span className="flex items-center gap-2.5"><FileText className="h-4 w-4 text-amber-500" /> Orçamentos</span><ChevronRight className={`h-4 w-4 transition-transform ${quotesOpen ? 'rotate-90' : ''}`} /></button>
+                  {quotesOpen && <div className="mx-3 mb-1 rounded-xl bg-slate-50 py-1 dark:bg-slate-950"><Link href="/cotacoes?view=requested" onClick={closeMenu} className="block px-4 py-2 text-xs font-medium text-slate-600 hover:text-amber-600 dark:text-slate-300 dark:hover:text-amber-400">Solicitados</Link><Link href="/cotacoes?view=received" onClick={closeMenu} className="block px-4 py-2 text-xs font-medium text-slate-600 hover:text-amber-600 dark:text-slate-300 dark:hover:text-amber-400">Recebidos</Link></div>}
+                  <Link href="/cotacoes?view=purchases" onClick={closeMenu} className={menuButtonClass}><Package className="h-4 w-4 text-blue-500" /> Minhas Compras e Pedidos</Link>
+                  <Link href="/cotacoes?view=reviews" onClick={closeMenu} className={menuButtonClass}><Star className="h-4 w-4 text-amber-500" /> Avaliações</Link>
                 </div>
-                <button
-                  onClick={handleLogout}
-                  className="flex items-center gap-1 text-xs text-rose-500 dark:text-rose-400 bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-800/50 px-2.5 py-1 rounded"
-                >
-                  <LogOut className="w-3.5 h-3.5" />
-                  Sair
-                </button>
-              </div>
-            ) : (
-              <div className="grid grid-cols-2 gap-2">
-                <Link
-                  href="/login"
-                  onClick={() => setMobileMenuOpen(false)}
-                  className="text-center py-2 px-4 border border-slate-300 dark:border-slate-700 rounded-lg text-slate-800 dark:text-slate-200 font-medium"
-                >
-                  Entrar
-                </Link>
-                <Link
-                  href="/cadastro"
-                  onClick={() => setMobileMenuOpen(false)}
-                  className="text-center py-2 px-4 bg-amber-500 text-slate-950 font-bold rounded-lg"
-                >
-                  Cadastrar
-                </Link>
-              </div>
-            )}
+                <div className="py-1"><Link href="/conta" onClick={closeMenu} className={`${menuButtonClass} text-red-600 dark:text-red-400`}><Settings className="h-4 w-4" /> Dados Cadastrais</Link></div>
+              </> : <div className="space-y-2 p-3"><Link href="/login" onClick={closeMenu} className="block rounded-xl bg-amber-500 px-4 py-2.5 text-center text-xs font-bold text-slate-950 hover:bg-amber-400">Entrar</Link><Link href="/cadastro" onClick={closeMenu} className="block rounded-xl border border-slate-200 px-4 py-2.5 text-center text-xs font-bold hover:bg-slate-50 dark:border-slate-700 dark:hover:bg-slate-800">Criar cadastro</Link></div>}
+            </div>}
           </div>
+
+          <ThemeToggle showLabel={false} />
         </div>
-      )}
+      </div>
     </header>
   )
 }

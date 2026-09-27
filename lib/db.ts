@@ -331,6 +331,42 @@ export const db = {
     return usersMemory.find((u) => u.id === id) || null
   },
 
+  updateUser: async (id: string, data: any) => {
+    if (isPrismaConfigured()) {
+      try {
+        return await prisma.user.update({
+          where: { id },
+          data: {
+            ...(data.name !== undefined ? { name: data.name } : {}),
+            ...(data.phone !== undefined ? { phone: data.phone } : {}),
+            ...(data.city !== undefined ? { city: data.city } : {}),
+            ...(data.neighborhood !== undefined ? { neighborhood: data.neighborhood } : {}),
+          },
+          include: { storeProfile: true },
+        })
+      } catch (e) {
+        console.warn('Prisma update user error, fallback to memory:', e)
+      }
+    }
+    const user = usersMemory.find((item) => item.id === id)
+    if (!user) return null
+    Object.assign(user, data)
+    return user
+  },
+  deleteUser: async (id: string) => {
+    if (isPrismaConfigured()) {
+      try {
+        await prisma.user.delete({ where: { id } })
+        return true
+      } catch (e) {
+        console.warn('Prisma delete user error, fallback to memory:', e)
+      }
+    }
+    const index = usersMemory.findIndex((item) => item.id === id)
+    if (index < 0) return false
+    usersMemory.splice(index, 1)
+    return true
+  },
   createUser: async (data: any) => {
     if (isPrismaConfigured()) {
       try {
@@ -343,7 +379,7 @@ export const db = {
             role: data.role || 'COMPRADOR',
             city: data.city || 'São Luís',
             neighborhood: data.neighborhood || 'Centro',
-            ...(data.role === 'LOJISTA' && data.storeProfile ? {
+            ...((data.role === 'LOJISTA' || data.role === 'VENDEDOR') && data.storeProfile ? {
               storeProfile: {
                 create: {
                   companyName: data.storeProfile.companyName || data.name,
@@ -380,7 +416,7 @@ export const db = {
       createdAt: new Date()
     }
 
-    if (data.role === 'LOJISTA' && data.storeProfile) {
+    if ((data.role === 'LOJISTA' || data.role === 'VENDEDOR') && data.storeProfile) {
       const newStore: StoreProfileData = {
         id: `store-${Date.now()}`,
         userId: newUser.id,

@@ -1,6 +1,7 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
+import { useTheme } from '@/components/ThemeProvider';
 import Link from 'next/link';
 import { 
   ShoppingBag, 
@@ -17,8 +18,6 @@ import {
   ChevronRight, 
   Car, 
   Bike,
-  Sun,
-  Moon,
   MapPin,
   X,
   CheckCircle2,
@@ -26,20 +25,11 @@ import {
 } from 'lucide-react';
 
 export default function HomeDashboard() {
-  const [darkMode, setDarkMode] = useState(false);
+  const { theme } = useTheme();
+  const darkMode = theme === 'dark';
   const [activeTab, setActiveTab] = useState<'home' | 'comprar' | 'vender' | 'oficinas' | 'guinchos' | 'guia'>('home');
-  const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isCadastreseOpen, setIsCadastreseOpen] = useState(true);
   const [activeModal, setActiveModal] = useState<string | null>(null);
-
-  // Alternar tema Claro/Escuro
-  useEffect(() => {
-    if (darkMode) {
-      document.documentElement.classList.add('dark');
-    } else {
-      document.documentElement.classList.remove('dark');
-    }
-  }, [darkMode]);
 
   const openCadastroModal = (tipo: string) => {
     setActiveModal(`cadastro_${tipo}`);
@@ -48,78 +38,6 @@ export default function HomeDashboard() {
   return (
     <div className={`min-h-screen flex flex-col font-sans transition-colors duration-200 ${darkMode ? 'bg-slate-950 text-slate-100' : 'bg-slate-100 text-slate-900'}`}>
       
-      {/* 1. BARRA SUPERIOR (HEADER) */}
-      <header className={`sticky top-0 z-50 border-b backdrop-blur-md px-4 py-2.5 transition-colors ${darkMode ? 'bg-slate-950/90 border-slate-800' : 'bg-white/90 border-slate-200'}`}>
-        <div className="max-w-7xl mx-auto flex items-center justify-between gap-2">
-          
-          {/* Logo Oficial e Texto ao Lado */}
-          <Link href="/" className="flex items-center gap-3 group" onClick={() => setActiveTab('home')}>
-            <img 
-              src="/PeçaAki_Logomarca_SF.png" 
-              alt="PeçaAki Auto & Moto" 
-              className="h-10 md:h-11 w-auto object-contain"
-            />
-            <div className="flex flex-col">
-              <span className={`text-xs md:text-sm font-bold leading-tight ${darkMode ? 'text-slate-200' : 'text-slate-800'}`}>
-                Marketplace de peças – Grande São Luís/MA
-              </span>
-            </div>
-          </Link>
-
-          {/* Botões Direitos de Ícone: Perfil de Usuário + Alternância de Tema (Sol/Lua) */}
-          <div className="flex items-center gap-2">
-            
-            {/* Botão Perfil (Ícone Circular) */}
-            <div className="relative">
-              <button 
-                onClick={() => setIsMenuOpen(!isMenuOpen)}
-                aria-label="Menu do Usuário"
-                className={`w-10 h-10 rounded-full flex items-center justify-center border transition-all active:scale-95 shadow-sm ${darkMode ? 'bg-slate-900 hover:bg-slate-800 border-slate-800 text-slate-200' : 'bg-slate-100 hover:bg-slate-200 border-slate-200 text-slate-700'}`}
-              >
-                <User className="w-5 h-5 text-red-600" />
-              </button>
-
-              {/* Dropdown Meu Espaço */}
-              {isMenuOpen && (
-                <div className={`absolute right-0 mt-2 w-64 rounded-2xl shadow-2xl py-2 z-50 border animate-in fade-in ${darkMode ? 'bg-slate-900 border-slate-800 text-slate-200' : 'bg-white border-slate-200 text-slate-800'}`}>
-                  <div className={`px-4 py-2 border-b mb-1 ${darkMode ? 'border-slate-800' : 'border-slate-100'}`}>
-                    <p className="text-[10px] text-slate-400 uppercase tracking-wider font-medium">Painel do Usuário</p>
-                    <p className="text-xs font-bold">Minha Conta SLZ</p>
-                  </div>
-                  
-                  <button onClick={() => { setActiveModal('orcamentos'); setIsMenuOpen(false); }} className={`w-full text-left px-4 py-2.5 text-xs flex items-center gap-2.5 transition-colors ${darkMode ? 'hover:bg-slate-800' : 'hover:bg-slate-50'}`}>
-                    <FileText className="w-4 h-4 text-red-600" /> Orçamentos (Solicitados & Recebidos)
-                  </button>
-                  <button onClick={() => { setActiveModal('compras'); setIsMenuOpen(false); }} className={`w-full text-left px-4 py-2.5 text-xs flex items-center gap-2.5 transition-colors ${darkMode ? 'hover:bg-slate-800' : 'hover:bg-slate-50'}`}>
-                    <Package className="w-4 h-4 text-red-600" /> Minhas Compras e Pedidos
-                  </button>
-                  <button onClick={() => { setActiveModal('avaliacoes'); setIsMenuOpen(false); }} className={`w-full text-left px-4 py-2.5 text-xs flex items-center gap-2.5 transition-colors ${darkMode ? 'hover:bg-slate-800' : 'hover:bg-slate-50'}`}>
-                    <Star className="w-4 h-4 text-amber-500" /> Avaliações Feitas e Recebidas
-                  </button>
-                  
-                  <div className={`border-t my-1 ${darkMode ? 'border-slate-800' : 'border-slate-100'}`}></div>
-                  
-                  <button onClick={() => { setActiveModal('dados'); setIsMenuOpen(false); }} className={`w-full text-left px-4 py-2.5 text-xs text-red-500 flex items-center gap-2.5 transition-colors ${darkMode ? 'hover:bg-red-500/10' : 'hover:bg-red-50'}`}>
-                    <Settings className="w-4 h-4" /> Dados Cadastrais & Exclusão de Conta
-                  </button>
-                </div>
-              )}
-            </div>
-
-            {/* Botão Alternância de Tema (Lua / Sol) */}
-            <button 
-              onClick={() => setDarkMode(!darkMode)}
-              aria-label="Alternar Modo Claro e Escuro"
-              className={`w-10 h-10 rounded-full border flex items-center justify-center transition-all active:scale-95 ${darkMode ? 'bg-slate-900 border-slate-800 text-amber-400 hover:bg-slate-800' : 'bg-slate-100 border-slate-200 text-slate-700 hover:bg-slate-200'}`}
-            >
-              {darkMode ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
-            </button>
-
-          </div>
-
-        </div>
-      </header>
-
       {/* CONTEÚDO PRINCIPAL */}
       <main className="flex-1 max-w-4xl w-full mx-auto px-3 py-4 pb-28">
         

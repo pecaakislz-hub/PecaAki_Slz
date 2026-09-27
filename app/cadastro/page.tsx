@@ -3,13 +3,13 @@
 import { useState, useEffect, Suspense } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
-import { User, Store, Mail, Phone, Lock, MapPin, Building, AlertCircle, ArrowRight, ShieldCheck } from 'lucide-react'
+import { User, Store, Wrench, Truck, Mail, Phone, Lock, MapPin, Building, AlertCircle, ArrowRight, ShieldCheck } from 'lucide-react'
 
 function RegisterContent() {
   const router = useRouter()
   const searchParams = useSearchParams()
   
-  const [role, setRole] = useState<'COMPRADOR' | 'LOJISTA'>('COMPRADOR')
+  const [role, setRole] = useState<'COMPRADOR' | 'VENDEDOR' | 'OFICINA' | 'GUINCHO'>('COMPRADOR')
   const [name, setName] = useState('')
   const [email, setEmail] = useState('')
   const [phone, setPhone] = useState('')
@@ -28,7 +28,7 @@ function RegisterContent() {
 
   useEffect(() => {
     const roleParam = searchParams.get('role')
-    if (roleParam === 'LOJISTA') setRole('LOJISTA')
+    if (['COMPRADOR', 'VENDEDOR', 'OFICINA', 'GUINCHO'].includes(roleParam || '')) setRole(roleParam as 'COMPRADOR' | 'VENDEDOR' | 'OFICINA' | 'GUINCHO')
   }, [searchParams])
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -47,7 +47,7 @@ function RegisterContent() {
         neighborhood: neighborhood || 'Centro'
       }
 
-      if (role === 'LOJISTA') {
+      if (role === 'VENDEDOR') {
         payload.storeData = {
           companyName: companyName || name,
           fantasyName: fantasyName || name,
@@ -75,12 +75,7 @@ function RegisterContent() {
         return
       }
 
-      if (role === 'LOJISTA') {
-        router.push('/lojista/radar')
-      } else {
-        router.push('/garagem')
-      }
-      router.refresh()
+      router.push('/login?registered=1')
     } catch (err) {
       setError('Falha na comunicação com o servidor')
       setLoading(false)
@@ -101,7 +96,7 @@ function RegisterContent() {
         </div>
 
         {/* Seletor de Perfil */}
-        <div className="grid grid-cols-2 gap-3 p-1.5 bg-slate-100 dark:bg-slate-950 rounded-2xl border border-slate-200 dark:border-slate-800">
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 p-1.5 bg-slate-100 dark:bg-slate-950 rounded-2xl border border-slate-200 dark:border-slate-800">
           <button
             type="button"
             onClick={() => setRole('COMPRADOR')}
@@ -113,16 +108,14 @@ function RegisterContent() {
           >
             <User className="w-4 h-4" /> Comprador / Mecânico
           </button>
-          <button
-            type="button"
-            onClick={() => setRole('LOJISTA')}
-            className={`py-2.5 px-3 rounded-xl text-xs font-bold flex items-center justify-center gap-2 transition-all ${
-              role === 'LOJISTA'
-                ? 'bg-amber-500 text-slate-950 shadow-md'
-                : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
-            }`}
-          >
-            <Store className="w-4 h-4" /> Autopeça / Motopeça
+          <button type="button" onClick={() => setRole('VENDEDOR')} className={`py-2.5 px-3 rounded-xl text-xs font-bold flex items-center justify-center gap-2 transition-all ${role === 'VENDEDOR' ? 'bg-amber-500 text-slate-950 shadow-md' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'}`}>
+            <Store className="w-4 h-4" /> Vendedor
+          </button>
+          <button type="button" onClick={() => setRole('OFICINA')} className={`py-2.5 px-3 rounded-xl text-xs font-bold flex items-center justify-center gap-2 transition-all ${role === 'OFICINA' ? 'bg-amber-500 text-slate-950 shadow-md' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'}`}>
+            <Wrench className="w-4 h-4" /> Oficina
+          </button>
+          <button type="button" onClick={() => setRole('GUINCHO')} className={`py-2.5 px-3 rounded-xl text-xs font-bold flex items-center justify-center gap-2 transition-all ${role === 'GUINCHO' ? 'bg-amber-500 text-slate-950 shadow-md' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'}`}>
+            <Truck className="w-4 h-4" /> Guincho
           </button>
         </div>
 
@@ -137,7 +130,7 @@ function RegisterContent() {
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
               <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
-                {role === 'LOJISTA' ? 'Nome do Responsável' : 'Nome Completo'}
+                {role === 'VENDEDOR' ? 'Nome do Responsável' : 'Nome Completo'}
               </label>
               <input
                 type="text"
@@ -217,7 +210,7 @@ function RegisterContent() {
           </div>
 
           {/* Campos adicionais para Lojistas */}
-          {role === 'LOJISTA' && (
+          {role === 'VENDEDOR' && (
             <div className="space-y-4 pt-4 border-t border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-950/50 p-4 rounded-2xl border border-slate-200 dark:border-slate-800">
               <h3 className="text-xs font-bold text-amber-600 dark:text-amber-400 uppercase tracking-wider flex items-center gap-1.5">
                 <Building className="w-4 h-4" /> Informações Comerciais da Loja

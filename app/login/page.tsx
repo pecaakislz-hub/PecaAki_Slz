@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { LogIn, Mail, Lock, AlertCircle, ArrowRight } from 'lucide-react'
@@ -9,8 +9,15 @@ export default function LoginPage() {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [error, setError] = useState('')
+  const [registeredMessage, setRegisteredMessage] = useState('')
   const [loading, setLoading] = useState(false)
   const router = useRouter()
+
+  useEffect(() => {
+    if (new URLSearchParams(window.location.search).get('registered') === '1') {
+      setRegisteredMessage('Cadastro concluído. Entre com seu e-mail e senha para acessar seu espaço.')
+    }
+  }, [])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -32,11 +39,7 @@ export default function LoginPage() {
         return
       }
 
-      if (data.user?.role === 'LOJISTA') {
-        router.push('/lojista/radar')
-      } else {
-        router.push('/cotacoes')
-      }
+      router.push('/conta')
       router.refresh()
     } catch (err) {
       setError('Falha de conexão com o servidor')
@@ -57,6 +60,11 @@ export default function LoginPage() {
           <p className="text-xs text-slate-600 dark:text-slate-400">Entre para gerenciar suas cotações ou enviar orçamentos</p>
         </div>
 
+        {registeredMessage && (
+          <div className="bg-emerald-50 dark:bg-emerald-500/10 border border-emerald-200 dark:border-emerald-500/30 text-emerald-700 dark:text-emerald-400 p-3 rounded-xl text-xs">
+            {registeredMessage}
+          </div>
+        )}
         {error && (
           <div className="bg-rose-50 dark:bg-rose-500/10 border border-rose-200 dark:border-rose-500/30 text-rose-600 dark:text-rose-400 p-3 rounded-xl text-xs flex items-center gap-2">
             <AlertCircle className="w-4 h-4 shrink-0" />
