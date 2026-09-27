@@ -9,27 +9,29 @@ generator client {
 }
 
 model User {
-  id           String        @id @default(uuid())
+  id           String   @id @default(uuid())
   name         String
-  email        String        @unique
+  email        String   @unique
   passwordHash String
   phone        String
-  role         String        @default("COMPRADOR") // COMPRADOR, LOJISTA, ADMIN
-  city         String        @default("São Luís")
+  role         String   @default("COMPRADOR") // COMPRADOR, LOJISTA, ADMIN
+  city         String   @default("São Luís")
   neighborhood String
-  createdAt    DateTime      @default(now())
-  updatedAt    DateTime      @updatedAt
-  
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
   storeProfile  StoreProfile?
   vehicles      Vehicle[]
   quoteRequests QuoteRequest[]
   notifications Notification[]
+  purchases     Purchase[]
+  reviews       Review[]
 }
 
 model StoreProfile {
-  id            String     @id @default(uuid())
-  userId        String     @unique
-  user          User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  id            String   @id @default(uuid())
+  userId        String   @unique
+  user          User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   companyName   String
   fantasyName   String
   cnpjCpf       String
@@ -37,47 +39,51 @@ model StoreProfile {
   city          String
   neighborhood  String
   address       String
-  categories    String     // Armazenado como JSON array string
-  vehicleBrands String     // Armazenado como JSON array string
-  isVerified    Boolean    @default(true)
-  createdAt     DateTime   @default(now())
+  categories    String // Armazenado como JSON array string
+  vehicleBrands String // Armazenado como JSON array string
+  isVerified    Boolean  @default(true)
+  createdAt     DateTime @default(now())
 
-  proposals     Proposal[]
+  proposals Proposal[]
+  purchases Purchase[]
+  reviews   Review[]
 }
 
 model Vehicle {
-  id            String         @id @default(uuid())
-  userId        String
-  user          User           @relation(fields: [userId], references: [id], onDelete: Cascade)
-  type          String         @default("CARRO") // CARRO, MOTO
-  brand         String
-  model         String
-  year          String
-  engine        String
-  plate         String?
-  createdAt     DateTime       @default(now())
+  id        String   @id @default(uuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  type      String   @default("CARRO") // CARRO, MOTO
+  brand     String
+  model     String
+  year      String
+  engine    String
+  plate     String?
+  createdAt DateTime @default(now())
 
   quoteRequests QuoteRequest[]
 }
 
 model QuoteRequest {
-  id                 String     @id @default(uuid())
+  id                 String   @id @default(uuid())
   userId             String
-  user               User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user               User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   vehicleId          String?
-  vehicle            Vehicle?   @relation(fields: [vehicleId], references: [id], onDelete: SetNull)
+  vehicle            Vehicle? @relation(fields: [vehicleId], references: [id], onDelete: SetNull)
   vehicleText        String?
   partName           String
   description        String
-  category           String     @default("Geral")
-  deliveryPreference String     @default("DELIVERY") // DELIVERY, PICKUP
-  targetCities       String     // Armazenado como JSON array string
-  photos             String     // Armazenado como JSON array string
-  status             String     @default("OPEN") // OPEN, ANSWERED, ACCEPTED, CLOSED
-  createdAt          DateTime   @default(now())
-  updatedAt          DateTime   @updatedAt
+  category           String   @default("Geral")
+  deliveryPreference String   @default("DELIVERY") // DELIVERY, PICKUP
+  targetCities       String // Armazenado como JSON array string
+  photos             String // Armazenado como JSON array string
+  status             String   @default("OPEN") // OPEN, ANSWERED, ACCEPTED, CLOSED
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
 
-  proposals          Proposal[]
+  proposals Proposal[]
+  purchase  Purchase?
+  reviews   Review[]
 }
 
 model Proposal {
@@ -86,8 +92,8 @@ model Proposal {
   quoteRequest     QuoteRequest @relation(fields: [quoteRequestId], references: [id], onDelete: Cascade)
   storeProfileId   String
   storeProfile     StoreProfile @relation(fields: [storeProfileId], references: [id], onDelete: Cascade)
-  availability     String       // IN_STOCK, ON_ORDER
-  condition        String       // NEW, ORIGINAL, SIMILAR, USED
+  availability     String // IN_STOCK, ON_ORDER
+  condition        String // NEW, ORIGINAL, SIMILAR, USED
   cashPrice        Float
   installmentPrice Float?
   deliveryFee      Float        @default(0.0)
@@ -96,6 +102,42 @@ model Proposal {
   photoUrl         String?
   status           String       @default("PENDING") // PENDING, ACCEPTED, REJECTED
   createdAt        DateTime     @default(now())
+  purchase         Purchase?
+  review           Review?
+}
+
+model Purchase {
+  id             String       @id @default(uuid())
+  userId         String
+  quoteRequestId String       @unique
+  proposalId     String       @unique
+  storeProfileId String
+  status         String       @default("PENDING_CONTACT") // PENDING_CONTACT, CONFIRMED, IN_DELIVERY, DELIVERED, CANCELLED
+  totalPrice     Float
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+  user           User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  quoteRequest   QuoteRequest @relation(fields: [quoteRequestId], references: [id], onDelete: Cascade)
+  proposal       Proposal     @relation(fields: [proposalId], references: [id], onDelete: Cascade)
+  storeProfile   StoreProfile @relation(fields: [storeProfileId], references: [id], onDelete: Cascade)
+  review         Review?
+}
+
+model Review {
+  id             String       @id @default(uuid())
+  userId         String
+  storeProfileId String
+  quoteRequestId String
+  proposalId     String       @unique
+  purchaseId     String       @unique
+  rating         Int
+  comment        String?
+  createdAt      DateTime     @default(now())
+  user           User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  storeProfile   StoreProfile @relation(fields: [storeProfileId], references: [id], onDelete: Cascade)
+  quoteRequest   QuoteRequest @relation(fields: [quoteRequestId], references: [id], onDelete: Cascade)
+  proposal       Proposal     @relation(fields: [proposalId], references: [id], onDelete: Cascade)
+  purchase       Purchase     @relation(fields: [purchaseId], references: [id], onDelete: Cascade)
 }
 
 model Notification {

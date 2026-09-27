@@ -79,6 +79,36 @@ export interface QuoteRequestData {
   proposals?: ProposalData[]
 }
 
+export interface PurchaseData {
+  id: string
+  userId: string
+  quoteRequestId: string
+  proposalId: string
+  storeProfileId: string
+  status: string
+  totalPrice: number
+  createdAt: Date
+  updatedAt: Date
+  quoteRequest?: QuoteRequestData | null
+  proposal?: ProposalData | null
+  storeProfile?: StoreProfileData | null
+  review?: ReviewData | null
+}
+
+export interface ReviewData {
+  id: string
+  userId: string
+  storeProfileId: string
+  quoteRequestId: string
+  proposalId: string
+  purchaseId: string
+  rating: number
+  comment?: string | null
+  createdAt: Date
+  storeProfile?: StoreProfileData | null
+  purchase?: PurchaseData | null
+}
+
 // Verifica se a conexão com o Supabase/PostgreSQL está configurada
 const isPrismaConfigured = () => {
   const url = process.env.DATABASE_URL
@@ -294,6 +324,10 @@ const quotesMemory: QuoteRequestData[] = [
     proposals: []
   }
 ]
+
+const purchasesMemory: PurchaseData[] = []
+const reviewsMemory: ReviewData[] = []
+const notificationsMemory: Array<{ id: string; userId: string; title: string; message: string; link?: string | null; read: boolean; createdAt: Date }> = []
 
 // ----------------------------------------------------
 // OPERAÇÕES DO BANCO DE DADOS HÍBRIDO
@@ -611,12 +645,21 @@ export const db = {
             photoUrl: data.photoUrl || null,
             status: 'PENDING'
           },
-          include: { storeProfile: true }
+          include: { storeProfile: true, quoteRequest: true }
         })
 
         await prisma.quoteRequest.update({
           where: { id: data.quoteRequestId },
           data: { status: 'ANSWERED', updatedAt: new Date() }
+        })
+
+        await prisma.notification.create({
+          data: {
+            userId: proposal.quoteRequest.userId,
+            title: 'Novo orçamento recebido',
+            message: `${proposal.storeProfile.fantasyName} enviou uma proposta para ${proposal.quoteRequest.partName}.`,
+            link: `/cotacoes/${proposal.quoteRequestId}`
+          }
         })
 
         return proposal
@@ -652,37 +695,90 @@ export const db = {
       quote.proposals.push(newProposal)
       quote.status = 'ANSWERED'
       quote.updatedAt = new Date()
+      notificationsMemory.unshift({ id: `notification-${Date.now()}`, userId: quote.userId, title: 'Novo orçamento recebido', message: `${store?.fantasyName || 'Uma loja'} enviou uma proposta para ${quote.partName}.`, link: `/cotacoes/${quote.id}`, read: false, createdAt: new Date() })
     }
 
     return newProposal
   },
 
-  acceptProposal: async (proposalId: string) => {
+  acceptProposal: async (proposalId: string, buyerId: string) => {
     if (isPrismaConfigured()) {
-      try {
-        const updatedProp = await prisma.proposal.update({
-          where: { id: proposalId },
-          data: { status: 'ACCEPTED' }
-        })
-        await prisma.quoteRequest.update({
-          where: { id: updatedProp.quoteRequestId },
-          data: { status: 'ACCEPTED', updatedAt: new Date() }
-        })
-        return updatedProp
-      } catch (e) {
-        console.warn('Prisma accept proposal error, fallback to memory:', e)
-      }
+      return prisma.$transaction(async (tx) => {
+        const proposal = await tx.proposal.findUnique({ where: { id: proposalId }, include: { quoteRequest: true, storeProfile: true } })
+        if (!proposal || proposal.quoteRequest.userId !== buyerId) throw new Error('NOT_ALLOWED')
+        const existing = await tx.purchase.findUnique({ where: { quoteRequestId: proposal.quoteRequestId } })
+        if (existing) return { proposal, purchase: existing }
+        await tx.proposal.updateMany({ where: { quoteRequestId: proposal.quoteRequestId }, data: { status: 'REJECTED' } })
+        const updatedProp = await tx.proposal.update({ where: { id: proposalId }, data: { status: 'ACCEPTED' } })
+        await tx.quoteRequest.update({ where: { id: proposal.quoteRequestId }, data: { status: 'ACCEPTED', updatedAt: new Date() } })
+        const purchase = await tx.purchase.create({ data: { userId: buyerId, quoteRequestId: proposal.quoteRequestId, proposalId, storeProfileId: proposal.storeProfileId, totalPrice: proposal.cashPrice + proposal.deliveryFee } })
+        await tx.notification.create({ data: { userId: buyerId, title: 'Pedido criado', message: `Seu pedido de ${proposal.quoteRequest.partName} foi criado. Combine os próximos passos com a loja.`, link: `/cotacoes?view=purchases` } })
+        await tx.notification.create({ data: { userId: proposal.storeProfile.userId, title: 'Proposta aceita', message: `Sua proposta para ${proposal.quoteRequest.partName} foi aceita pelo comprador.`, link: `/lojista/radar` } })
+        return { proposal: updatedProp, purchase }
+      })
     }
-
     const proposal = proposalsMemory.find((p) => p.id === proposalId)
-    if (proposal) {
-      proposal.status = 'ACCEPTED'
-      const quote = quotesMemory.find((q) => q.id === proposal.quoteRequestId)
-      if (quote) {
-        quote.status = 'ACCEPTED'
-        quote.updatedAt = new Date()
-      }
+    const quote = proposal && quotesMemory.find((q) => q.id === proposal.quoteRequestId)
+    if (!proposal || !quote || quote.userId !== buyerId) throw new Error('NOT_ALLOWED')
+    const existing = purchasesMemory.find((purchase) => purchase.quoteRequestId === quote.id)
+    if (existing) return { proposal, purchase: existing }
+    proposalsMemory.filter((item) => item.quoteRequestId === quote.id).forEach((item) => { item.status = item.id === proposalId ? 'ACCEPTED' : 'REJECTED' })
+    proposal.status = 'ACCEPTED'; quote.status = 'ACCEPTED'; quote.updatedAt = new Date()
+    const purchase: PurchaseData = { id: `purchase-${Date.now()}`, userId: buyerId, quoteRequestId: quote.id, proposalId, storeProfileId: proposal.storeProfileId, status: 'PENDING_CONTACT', totalPrice: proposal.cashPrice + proposal.deliveryFee, createdAt: new Date(), updatedAt: new Date(), quoteRequest: quote, proposal, storeProfile: proposal.storeProfile }
+    purchasesMemory.unshift(purchase)
+    notificationsMemory.unshift({ id: `notification-${Date.now()}`, userId: buyerId, title: 'Pedido criado', message: `Seu pedido de ${quote.partName} foi criado. Combine os próximos passos com a loja.`, link: '/cotacoes?view=purchases', read: false, createdAt: new Date() })
+    if (proposal.storeProfile) notificationsMemory.unshift({ id: `notification-${Date.now() + 1}`, userId: proposal.storeProfile.userId, title: 'Proposta aceita', message: `Sua proposta para ${quote.partName} foi aceita pelo comprador.`, link: '/lojista/radar', read: false, createdAt: new Date() })
+    return { proposal, purchase }
+  },
+
+  getUserDashboard: async (userId: string) => {
+    if (isPrismaConfigured()) {
+      return prisma.user.findUnique({ where: { id: userId }, select: {
+        quoteRequests: { orderBy: { createdAt: 'desc' }, include: { vehicle: true, proposals: { orderBy: { createdAt: 'desc' }, include: { storeProfile: true } }, purchase: { include: { proposal: { include: { storeProfile: true } }, storeProfile: true, review: true } } } },
+        purchases: { orderBy: { createdAt: 'desc' }, include: { quoteRequest: true, proposal: { include: { storeProfile: true } }, storeProfile: true, review: true } },
+        reviews: { orderBy: { createdAt: 'desc' }, include: { storeProfile: true, purchase: true } },
+        notifications: { orderBy: { createdAt: 'desc' }, take: 20 }
+      } })
     }
-    return proposal
+    const quotes = quotesMemory.filter((quote) => quote.userId === userId)
+    const purchases = purchasesMemory.filter((purchase) => purchase.userId === userId)
+    return { quoteRequests: quotes, purchases, reviews: reviewsMemory.filter((review) => review.userId === userId), notifications: notificationsMemory.filter((notification) => notification.userId === userId).sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime()).slice(0, 20) }
+  },
+
+  updatePurchaseStatus: async (purchaseId: string, userId: string, status: string) => {
+    const allowed = ['PENDING_CONTACT', 'CONFIRMED', 'IN_DELIVERY', 'DELIVERED', 'CANCELLED']
+    if (!allowed.includes(status)) throw new Error('INVALID_STATUS')
+    if (isPrismaConfigured()) {
+      const purchase = await prisma.purchase.findUnique({ where: { id: purchaseId }, include: { storeProfile: true, quoteRequest: true } })
+      if (!purchase || purchase.userId !== userId) throw new Error('NOT_ALLOWED')
+      const updated = await prisma.purchase.update({ where: { id: purchaseId }, data: { status } })
+      await prisma.notification.create({ data: { userId: purchase.storeProfile.userId, title: 'Status do pedido atualizado', message: `O pedido de ${purchase.quoteRequest.partName} foi marcado como ${status.toLowerCase().replace('_', ' ')}.`, link: '/lojista/radar' } })
+      return updated
+    }
+    const purchase = purchasesMemory.find((item) => item.id === purchaseId && item.userId === userId)
+    if (!purchase) throw new Error('NOT_ALLOWED')
+    purchase.status = status; purchase.updatedAt = new Date()
+    if (purchase.storeProfile) notificationsMemory.unshift({ id: `notification-${Date.now()}`, userId: purchase.storeProfile.userId, title: 'Status do pedido atualizado', message: `O pedido foi marcado como ${status.toLowerCase().replace('_', ' ')}.`, link: '/lojista/radar', read: false, createdAt: new Date() })
+    return purchase
+  },
+
+  createReview: async (userId: string, data: { purchaseId: string; rating: number; comment?: string }) => {
+    if (data.rating < 1 || data.rating > 5) throw new Error('INVALID_RATING')
+    if (isPrismaConfigured()) {
+      const purchase = await prisma.purchase.findUnique({ where: { id: data.purchaseId }, include: { proposal: true, storeProfile: true, quoteRequest: true, review: true } })
+      if (!purchase || purchase.userId !== userId || purchase.status !== 'DELIVERED' || purchase.review) throw new Error('REVIEW_NOT_ALLOWED')
+      const review = await prisma.review.create({ data: { userId, storeProfileId: purchase.storeProfileId, quoteRequestId: purchase.quoteRequestId, proposalId: purchase.proposalId, purchaseId: purchase.id, rating: data.rating, comment: data.comment || null }, include: { storeProfile: true } })
+      await prisma.notification.create({ data: { userId: purchase.storeProfile.userId, title: 'Nova avaliação recebida', message: `Você recebeu uma avaliação de ${data.rating}/5 no pedido de ${purchase.quoteRequest.partName}.`, link: '/lojista/perfil' } })
+      return review
+    }
+    const purchase = purchasesMemory.find((item) => item.id === data.purchaseId && item.userId === userId)
+    if (!purchase || purchase.status !== 'DELIVERED' || reviewsMemory.some((review) => review.purchaseId === purchase.id)) throw new Error('REVIEW_NOT_ALLOWED')
+    const review: ReviewData = { id: `review-${Date.now()}`, userId, storeProfileId: purchase.storeProfileId, quoteRequestId: purchase.quoteRequestId, proposalId: purchase.proposalId, purchaseId: purchase.id, rating: data.rating, comment: data.comment || null, createdAt: new Date(), storeProfile: purchase.storeProfile, purchase: null }
+    reviewsMemory.unshift(review); purchase.review = review; return review
+  },
+
+  markNotificationsRead: async (userId: string) => {
+    if (isPrismaConfigured()) return prisma.notification.updateMany({ where: { userId, read: false }, data: { read: true } })
+    notificationsMemory.filter((notification) => notification.userId === userId).forEach((notification) => { notification.read = true }); return { count: 0 }
   }
 }

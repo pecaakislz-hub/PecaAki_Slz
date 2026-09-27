@@ -1,119 +1,82 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { Suspense, useEffect, useMemo, useState } from 'react'
 import Link from 'next/link'
-import { PlusCircle, Clock, MapPin, CheckCircle2, ChevronRight, MessageSquare, AlertCircle } from 'lucide-react'
+import { useSearchParams } from 'next/navigation'
+import { AlertCircle, Bell, CheckCircle2, ChevronRight, Clock3, FileText, MessageCircle, Package, PlusCircle, RefreshCw, Send, Star, Truck } from 'lucide-react'
 
-export default function MyQuotesPage() {
-  const [quotes, setQuotes] = useState<any[]>([])
+type View = 'requested' | 'received' | 'purchases' | 'reviews'
+const labels: Record<View, string> = { requested: 'Solicitados', received: 'Recebidos', purchases: 'Compras e pedidos', reviews: 'Avaliações' }
+const statuses: Record<string, string> = { OPEN: 'Aguardando propostas', ANSWERED: 'Propostas recebidas', ACCEPTED: 'Pedido criado', CLOSED: 'Encerrada', PENDING_CONTACT: 'Aguardando contato', CONFIRMED: 'Compra confirmada', IN_DELIVERY: 'Em entrega', DELIVERED: 'Entregue', CANCELLED: 'Cancelado' }
+const formatDate = (value: string) => new Date(value).toLocaleDateString('pt-BR', { day: '2-digit', month: 'short', year: 'numeric' })
+const formatMoney = (value: number) => `R$ ${Number(value || 0).toFixed(2).replace('.', ',')}`
+
+function PanelContent() {
+  const params = useSearchParams()
+  const requestedView = params.get('view') as View
+  const view: View = labels[requestedView] ? requestedView : 'requested'
+  const [dashboard, setDashboard] = useState<any>(null)
   const [loading, setLoading] = useState(true)
-
-  useEffect(() => {
-    fetch('/api/quotes?scope=my')
-      .then((res) => res.json())
-      .then((data) => {
-        if (data.quotes) setQuotes(data.quotes)
-      })
-      .catch(() => {})
-      .finally(() => setLoading(false))
-  }, [])
-
-  return (
-    <div className="space-y-6 py-4">
-      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 bg-white dark:bg-slate-900 p-6 rounded-3xl border border-slate-200 dark:border-slate-800 shadow-sm transition-colors duration-200">
-        <div>
-          <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900 dark:text-white">Minhas Cotações</h1>
-          <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-400">
-            Acompanhe em tempo real os orçamentos recebidos das lojas de autopeças e motopeças.
-          </p>
-        </div>
-
-        <Link
-          href="/cotacoes/nova"
-          className="bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold px-4 py-2.5 rounded-xl text-sm flex items-center gap-2 shadow-lg shadow-amber-500/20 shrink-0"
-        >
-          <PlusCircle className="w-4 h-4" /> Nova Cotação
-        </Link>
-      </div>
-
-      {loading ? (
-        <div className="text-center py-12 text-slate-500 dark:text-slate-400 text-sm">Buscando suas cotações...</div>
-      ) : quotes.length > 0 ? (
-        <div className="space-y-4">
-          {quotes.map((q) => (
-            <div
-              key={q.id}
-              className="bg-white dark:bg-slate-900 p-6 rounded-2xl border border-slate-200 dark:border-slate-800 hover:border-amber-500/40 shadow-sm dark:shadow-none transition-all space-y-4"
-            >
-              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-100 dark:border-slate-800 pb-3">
-                <div className="flex items-center gap-2">
-                  <span
-                    className={`text-[10px] font-bold px-2.5 py-1 rounded-full uppercase ${
-                      q.status === 'ACCEPTED'
-                        ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30'
-                        : q.status === 'ANSWERED'
-                        ? 'bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/30'
-                        : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 border border-slate-200 dark:border-slate-700'
-                    }`}
-                  >
-                    {q.status === 'ACCEPTED' ? 'Concluída / Aceita' : q.status === 'ANSWERED' ? 'Orçamentos Recebidos' : 'Aguardando Lojas'}
-                  </span>
-                  <span className="text-xs text-slate-500 dark:text-slate-400">
-                    {new Date(q.createdAt).toLocaleDateString('pt-BR')} às {new Date(q.createdAt).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}
-                  </span>
-                </div>
-
-                <span className="text-xs text-amber-600 dark:text-amber-400 font-semibold flex items-center gap-1">
-                  <MessageSquare className="w-3.5 h-3.5" />
-                  {q.proposals.length} proposta(s) recebida(s)
-                </span>
-              </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-12 gap-4 items-center">
-                <div className="md:col-span-8 space-y-1.5">
-                  <h3 className="text-lg font-bold text-slate-900 dark:text-white">{q.partName}</h3>
-                  <p className="text-xs text-slate-600 dark:text-slate-300 line-clamp-2">{q.description}</p>
-                  
-                  {q.vehicle ? (
-                    <div className="text-xs text-slate-500 dark:text-slate-400 font-medium">
-                      🚗 Veículo: <strong>{q.vehicle.brand} {q.vehicle.model} ({q.vehicle.year})</strong>
-                    </div>
-                  ) : q.vehicleText ? (
-                    <div className="text-xs text-slate-500 dark:text-slate-400 font-medium">
-                      🚗 Veículo: <strong>{q.vehicleText}</strong>
-                    </div>
-                  ) : null}
-                </div>
-
-                <div className="md:col-span-4 flex justify-end">
-                  <Link
-                    href={`/cotacoes/${q.id}`}
-                    className="w-full sm:w-auto bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-amber-600 dark:text-amber-400 border border-amber-500/30 px-4 py-2.5 rounded-xl text-xs font-bold flex items-center justify-center gap-2 transition-all"
-                  >
-                    Ver Propostas & Comparar <ChevronRight className="w-4 h-4" />
-                  </Link>
-                </div>
-              </div>
-            </div>
-          ))}
-        </div>
-      ) : (
-        <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-12 text-center space-y-4 shadow-sm">
-          <div className="w-16 h-16 rounded-2xl bg-amber-500/10 text-amber-600 dark:text-amber-400 flex items-center justify-center mx-auto text-2xl">
-            📋
-          </div>
-          <h3 className="text-lg font-bold text-slate-900 dark:text-white">Nenhuma cotação encontrada</h3>
-          <p className="text-xs text-slate-600 dark:text-slate-400 max-w-md mx-auto">
-            Você ainda não publicou nenhum pedido de peça. Crie sua primeira cotação grátis!
-          </p>
-          <Link
-            href="/cotacoes/nova"
-            className="bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold px-5 py-2.5 rounded-xl text-sm inline-flex items-center gap-2 shadow-md"
-          >
-            <PlusCircle className="w-4 h-4" /> Pedir Peça Agora
-          </Link>
-        </div>
-      )}
-    </div>
-  )
+  const [error, setError] = useState('')
+  const [busy, setBusy] = useState<string | null>(null)
+  const [reviewing, setReviewing] = useState<string | null>(null)
+  const [rating, setRating] = useState(5)
+  const [comment, setComment] = useState('')
+  const load = async () => {
+    setLoading(true); setError('')
+    try {
+      const response = await fetch('/api/user/dashboard', { cache: 'no-store' })
+      const payload = await response.json()
+      if (!response.ok) { setError(payload.error || 'Faça login para acessar seu painel.'); return }
+      setDashboard(payload.dashboard)
+    } catch { setError('Não foi possível carregar o painel agora.') }
+    finally { setLoading(false) }
+  }
+  useEffect(() => { load() }, [])
+  const quotes = dashboard?.quoteRequests || []
+  const purchases = dashboard?.purchases || []
+  const reviews = dashboard?.reviews || []
+  const received = useMemo(() => quotes.filter((quote: any) => (quote.proposals?.length || 0) > 0), [quotes])
+  const pendingReviews = purchases.filter((purchase: any) => purchase.status === 'DELIVERED' && !purchase.review)
+  const unread = (dashboard?.notifications || []).filter((item: any) => !item.read).length
+  const updatePurchase = async (id: string, status: string) => {
+    setBusy(id)
+    try {
+      const response = await fetch(`/api/purchases/${id}`, { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ status }) })
+      const payload = await response.json()
+      if (!response.ok) { setError(payload.error || 'Não foi possível atualizar o pedido.'); return }
+      await load()
+    } catch { setError('Falha de comunicação ao atualizar o pedido.') }
+    finally { setBusy(null) }
+  }
+  const submitReview = async (purchaseId: string) => {
+    setBusy(purchaseId)
+    try {
+      const response = await fetch('/api/reviews', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ purchaseId, rating, comment }) })
+      const payload = await response.json()
+      if (!response.ok) { setError(payload.error || 'Não foi possível salvar a avaliação.'); return }
+      setReviewing(null); setComment(''); setRating(5); await load()
+    } catch { setError('Falha de comunicação ao salvar a avaliação.') }
+    finally { setBusy(null) }
+  }
+  const markRead = async () => { await fetch('/api/notifications/read', { method: 'POST' }); await load() }
+  if (loading) return <div className="py-20 text-center text-sm text-slate-500">Carregando seu painel...</div>
+  if (error && !dashboard) return <div className="mx-auto max-w-xl py-20 text-center"><AlertCircle className="mx-auto mb-3 h-8 w-8 text-rose-500" /><p className="text-sm text-slate-600 dark:text-slate-300">{error}</p><Link href="/login" className="mt-5 inline-flex rounded-xl bg-amber-500 px-4 py-2.5 text-xs font-bold text-slate-950">Entrar na conta</Link></div>
+  return <div className="mx-auto max-w-5xl space-y-5 py-5 pb-12">
+    <header className="rounded-3xl border border-slate-200 bg-white p-5 shadow-sm dark:border-slate-800 dark:bg-slate-900 sm:p-7"><div className="flex flex-col justify-between gap-5 sm:flex-row sm:items-start"><div><p className="text-[11px] font-black uppercase tracking-[.18em] text-amber-600 dark:text-amber-400">Meu espaço</p><h1 className="mt-1 text-2xl font-black text-slate-900 dark:text-white">Orçamentos, compras e avaliações</h1><p className="mt-1 max-w-2xl text-xs leading-relaxed text-slate-500 dark:text-slate-400">Acompanhe cada etapa: do pedido enviado ao recebimento da peça e à sua avaliação da loja.</p></div><div className="flex items-center gap-2"><button onClick={markRead} className="relative inline-flex items-center gap-2 rounded-xl border border-slate-200 px-3 py-2 text-xs font-bold text-slate-600 hover:bg-slate-50 dark:border-slate-700 dark:text-slate-300 dark:hover:bg-slate-800"><Bell className="h-4 w-4" /> Notificações{unread > 0 && <span className="rounded-full bg-rose-500 px-1.5 py-0.5 text-[9px] font-black text-white">{unread}</span>}</button><button onClick={load} className="rounded-xl border border-slate-200 p-2 text-slate-500 hover:bg-slate-50 dark:border-slate-700 dark:hover:bg-slate-800" aria-label="Atualizar painel"><RefreshCw className="h-4 w-4" /></button></div></div><div className="mt-5 grid grid-cols-2 gap-3 sm:grid-cols-4"><Stat label="Solicitados" value={quotes.length} color="amber" /><Stat label="Com propostas" value={received.length} color="sky" /><Stat label="Pedidos" value={purchases.length} color="emerald" /><Stat label="Avaliações" value={reviews.length} color="violet" /></div></header>
+    <nav className="grid grid-cols-2 gap-2 rounded-2xl border border-slate-200 bg-white p-2 dark:border-slate-800 dark:bg-slate-900 sm:grid-cols-4">{(Object.keys(labels) as View[]).map((key) => <Link key={key} href={`/cotacoes?view=${key}`} className={`rounded-xl px-3 py-2.5 text-center text-xs font-bold transition ${view === key ? 'bg-slate-900 text-white shadow-sm dark:bg-amber-500 dark:text-slate-950' : 'text-slate-500 hover:bg-slate-50 dark:text-slate-400 dark:hover:bg-slate-800'}`}>{labels[key]}</Link>)}</nav>
+    {error && <div className="flex items-center gap-2 rounded-xl border border-rose-200 bg-rose-50 p-3 text-xs text-rose-700 dark:border-rose-900/50 dark:bg-rose-950/30 dark:text-rose-300"><AlertCircle className="h-4 w-4" />{error}</div>}
+    {view === 'requested' && <section className="space-y-3"><div className="flex items-center justify-between"><h2 className="flex items-center gap-2 text-lg font-black text-slate-900 dark:text-white"><Send className="h-5 w-5 text-amber-500" /> Solicitações enviadas</h2><Link href="/cotacoes/nova" className="inline-flex items-center gap-1.5 rounded-xl bg-amber-500 px-3 py-2 text-xs font-bold text-slate-950"><PlusCircle className="h-4 w-4" /> Nova cotação</Link></div>{quotes.length ? <div className="grid gap-3">{quotes.map((quote: any) => <QuoteCard key={quote.id} quote={quote} />)}</div> : <Empty title="Você ainda não solicitou uma cotação" text="Descreva seu veículo e a peça necessária para receber propostas locais." href="/cotacoes/nova" label="Pedir uma peça" />}</section>}
+    {view === 'received' && <section className="space-y-3"><h2 className="flex items-center gap-2 text-lg font-black text-slate-900 dark:text-white"><FileText className="h-5 w-5 text-sky-500" /> Orçamentos recebidos</h2>{received.length ? <div className="grid gap-3">{received.map((quote: any) => <QuoteCard key={quote.id} quote={quote} highlight />)}</div> : <Empty title="Nenhuma proposta recebida ainda" text="Quando uma loja responder, a cotação aparecerá aqui automaticamente." href="/cotacoes?view=requested" label="Ver solicitações" />}</section>}
+    {view === 'purchases' && <section className="space-y-3"><h2 className="flex items-center gap-2 text-lg font-black text-slate-900 dark:text-white"><Package className="h-5 w-5 text-emerald-500" /> Minhas compras e pedidos</h2><p className="text-xs text-slate-500 dark:text-slate-400">O pedido é criado automaticamente quando você aceita uma proposta. Atualize o andamento conforme combinar com a loja.</p>{purchases.length ? <div className="grid gap-3">{purchases.map((purchase: any) => <PurchaseCard key={purchase.id} purchase={purchase} busy={busy === purchase.id} onStatus={updatePurchase} onReview={() => setReviewing(purchase.id)} />)}</div> : <Empty title="Nenhum pedido criado" text="Aceite a melhor proposta em uma cotação para acompanhar sua compra aqui." href="/cotacoes?view=received" label="Ver propostas" />}</section>}
+    {view === 'reviews' && <section className="space-y-3"><h2 className="flex items-center gap-2 text-lg font-black text-slate-900 dark:text-white"><Star className="h-5 w-5 fill-amber-400 text-amber-500" /> Avaliações</h2>{pendingReviews.length > 0 && <div className="rounded-2xl border border-amber-200 bg-amber-50 p-4 dark:border-amber-900/50 dark:bg-amber-950/20"><p className="text-xs font-black text-amber-800 dark:text-amber-300">Você tem {pendingReviews.length} avaliação(ões) pendente(s)</p><p className="mt-1 text-xs text-amber-700/80 dark:text-amber-300/80">Conte como foi sua experiência após marcar o pedido como entregue.</p></div>}{reviews.length ? <div className="grid gap-3">{reviews.map((review: any) => <div key={review.id} className="rounded-2xl border border-slate-200 bg-white p-4 dark:border-slate-800 dark:bg-slate-900"><div className="flex items-center justify-between gap-3"><div><p className="text-sm font-black text-slate-900 dark:text-white">{review.storeProfile?.fantasyName || 'Loja parceira'}</p><p className="text-xs text-slate-500">{formatDate(review.createdAt)}</p></div><Stars value={review.rating} /></div>{review.comment && <p className="mt-3 text-xs leading-relaxed text-slate-600 dark:text-slate-300">“{review.comment}”</p>}</div>)}</div> : pendingReviews.length === 0 && <Empty title="Você ainda não avaliou uma loja" text="Depois de receber um pedido, sua avaliação ajuda outros compradores." href="/cotacoes?view=purchases" label="Ver pedidos" />}{pendingReviews.map((purchase: any) => reviewing === purchase.id && <ReviewForm key={purchase.id} purchase={purchase} rating={rating} setRating={setRating} comment={comment} setComment={setComment} busy={busy === purchase.id} onCancel={() => setReviewing(null)} onSubmit={() => submitReview(purchase.id)} />)}</section>}
+  </div>
 }
+
+function Stat({ label, value, color }: { label: string; value: number; color: string }) { const colors: Record<string, string> = { amber: 'bg-amber-500/10 text-amber-700 dark:text-amber-300', sky: 'bg-sky-500/10 text-sky-700 dark:text-sky-300', emerald: 'bg-emerald-500/10 text-emerald-700 dark:text-emerald-300', violet: 'bg-violet-500/10 text-violet-700 dark:text-violet-300' }; return <div className={`rounded-2xl p-3 ${colors[color] || colors.amber}`}><p className="text-[10px] font-bold uppercase">{label}</p><p className="mt-1 text-2xl font-black text-slate-900 dark:text-white">{value}</p></div> }
+function QuoteCard({ quote, highlight = false }: { quote: any; highlight?: boolean }) { return <div className={`rounded-2xl border bg-white p-4 shadow-sm transition hover:shadow-md dark:bg-slate-900 ${highlight ? 'border-sky-200 dark:border-sky-900/60' : 'border-slate-200 dark:border-slate-800'}`}><div className="flex flex-col justify-between gap-3 sm:flex-row sm:items-start"><div><div className="flex flex-wrap items-center gap-2"><span className="rounded-full bg-slate-100 px-2.5 py-1 text-[10px] font-black uppercase text-slate-600 dark:bg-slate-800 dark:text-slate-300">{statuses[quote.status] || quote.status}</span><span className="text-[11px] text-slate-500">{formatDate(quote.createdAt)}</span></div><h3 className="mt-2 text-base font-black text-slate-900 dark:text-white">{quote.partName}</h3><p className="mt-1 line-clamp-2 text-xs text-slate-500 dark:text-slate-400">{quote.description}</p></div><Link href={`/cotacoes/${quote.id}`} className="inline-flex shrink-0 items-center justify-center gap-1 rounded-xl border border-amber-300 px-3 py-2 text-xs font-bold text-amber-700 hover:bg-amber-50 dark:border-amber-800 dark:text-amber-300"><span>Ver detalhes</span><ChevronRight className="h-4 w-4" /></Link></div><div className="mt-3 flex flex-wrap items-center gap-x-4 gap-y-2 border-t border-slate-100 pt-3 text-[11px] text-slate-500 dark:border-slate-800"><span className="inline-flex items-center gap-1"><MessageCircle className="h-3.5 w-3.5 text-sky-500" /> {quote.proposals?.length || 0} proposta(s)</span><span className="inline-flex items-center gap-1"><Clock3 className="h-3.5 w-3.5 text-amber-500" /> Atualizada em {formatDate(quote.updatedAt)}</span>{quote.vehicle && <span>{quote.vehicle.brand} {quote.vehicle.model} ({quote.vehicle.year})</span>}</div></div> }
+function PurchaseCard({ purchase, busy, onStatus, onReview }: { purchase: any; busy: boolean; onStatus: (id: string, status: string) => void; onReview: () => void }) { const next: Record<string, { status: string; label: string }> = { PENDING_CONTACT: { status: 'CONFIRMED', label: 'Confirmar compra' }, CONFIRMED: { status: 'IN_DELIVERY', label: 'Marcar em entrega' }, IN_DELIVERY: { status: 'DELIVERED', label: 'Confirmar recebimento' } }; const proposal = purchase.proposal; const phone = purchase.storeProfile?.phone?.replace(/\D/g, ''); return <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-800 dark:bg-slate-900"><div className="flex flex-col justify-between gap-3 sm:flex-row sm:items-start"><div><div className="flex flex-wrap items-center gap-2"><span className="rounded-full bg-emerald-500/10 px-2.5 py-1 text-[10px] font-black uppercase text-emerald-700 dark:text-emerald-300">{statuses[purchase.status] || purchase.status}</span><span className="text-[11px] text-slate-500">{formatDate(purchase.createdAt)}</span></div><h3 className="mt-2 text-base font-black text-slate-900 dark:text-white">{purchase.quoteRequest?.partName || 'Pedido PeçaAki'}</h3><p className="text-xs text-slate-500 dark:text-slate-400">{purchase.storeProfile?.fantasyName || 'Loja parceira'} · {formatMoney(purchase.totalPrice)}{proposal?.deliveryTime ? ` · ${proposal.deliveryTime}` : ''}</p></div>{phone && <a href={`https://wa.me/55${phone}?text=${encodeURIComponent(`Olá! Estou acompanhando o pedido de ${purchase.quoteRequest?.partName || 'minha compra'} pelo PeçaAki.`)}`} target="_blank" rel="noreferrer" className="inline-flex items-center justify-center gap-1.5 rounded-xl bg-emerald-600 px-3 py-2 text-xs font-bold text-white"><MessageCircle className="h-4 w-4" /> WhatsApp</a>}</div><div className="mt-4 flex flex-wrap gap-2">{next[purchase.status] && <button disabled={busy} onClick={() => onStatus(purchase.id, next[purchase.status].status)} className="inline-flex items-center gap-1.5 rounded-xl bg-amber-500 px-3 py-2 text-xs font-black text-slate-950 disabled:opacity-50"><Truck className="h-4 w-4" /> {busy ? 'Atualizando...' : next[purchase.status].label}</button>}{purchase.status === 'DELIVERED' && !purchase.review && <button onClick={onReview} className="inline-flex items-center gap-1.5 rounded-xl border border-amber-300 px-3 py-2 text-xs font-bold text-amber-700 dark:border-amber-800 dark:text-amber-300"><Star className="h-4 w-4" /> Avaliar loja</button>}{purchase.status !== 'CANCELLED' && purchase.status !== 'DELIVERED' && <button disabled={busy} onClick={() => onStatus(purchase.id, 'CANCELLED')} className="rounded-xl px-3 py-2 text-xs font-bold text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/30">Cancelar</button>}</div></div> }
+function ReviewForm({ purchase, rating, setRating, comment, setComment, busy, onCancel, onSubmit }: any) { return <div className="rounded-2xl border border-amber-200 bg-white p-4 shadow-sm dark:border-amber-900/50 dark:bg-slate-900"><p className="text-sm font-black text-slate-900 dark:text-white">Avaliar {purchase.storeProfile?.fantasyName}</p><div className="mt-3 flex gap-1">{[1,2,3,4,5].map((star) => <button key={star} type="button" onClick={() => setRating(star)} className={`text-2xl ${star <= rating ? 'text-amber-400' : 'text-slate-300 dark:text-slate-700'}`} aria-label={`${star} estrelas`}>★</button>)}</div><textarea value={comment} onChange={(event) => setComment(event.target.value)} placeholder="Como foi sua experiência? (opcional)" rows={3} className="mt-3 w-full rounded-xl border border-slate-200 bg-slate-50 p-3 text-xs outline-none focus:border-amber-500 dark:border-slate-700 dark:bg-slate-950 dark:text-white" /><div className="mt-3 flex justify-end gap-2"><button type="button" onClick={onCancel} className="rounded-xl px-3 py-2 text-xs font-bold text-slate-500">Cancelar</button><button type="button" disabled={busy} onClick={onSubmit} className="rounded-xl bg-amber-500 px-4 py-2 text-xs font-bold text-slate-950">Salvar avaliação</button></div></div> }
+function Stars({ value }: { value: number }) { return <span className="text-sm tracking-tight text-amber-400" aria-label={`${value} de 5 estrelas`}>{[1,2,3,4,5].map((star) => <span key={star} className={star <= value ? '' : 'text-slate-300 dark:text-slate-700'}>★</span>)}</span> }
+function Empty({ title, text, href, label }: { title: string; text: string; href: string; label: string }) { return <div className="rounded-3xl border border-dashed border-slate-300 bg-white p-10 text-center dark:border-slate-700 dark:bg-slate-900"><CheckCircle2 className="mx-auto h-8 w-8 text-slate-300 dark:text-slate-600" /><h3 className="mt-3 text-base font-black text-slate-900 dark:text-white">{title}</h3><p className="mx-auto mt-1 max-w-sm text-xs leading-relaxed text-slate-500 dark:text-slate-400">{text}</p><Link href={href} className="mt-4 inline-flex rounded-xl bg-amber-500 px-4 py-2.5 text-xs font-bold text-slate-950">{label}</Link></div> }
+export default function MyQuotesPage() { return <Suspense fallback={<div className="py-20 text-center text-sm text-slate-500">Carregando painel...</div>}><PanelContent /></Suspense> }

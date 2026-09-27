@@ -16,8 +16,13 @@ export async function POST(req: Request) {
       const { proposalId } = body
       if (!proposalId) return NextResponse.json({ error: 'ID da proposta não informado' }, { status: 400 })
 
-      const proposal = await db.acceptProposal(proposalId)
-      return NextResponse.json({ success: true, proposal })
+      try {
+        const result = await db.acceptProposal(proposalId, user.id)
+        return NextResponse.json({ success: true, ...result })
+      } catch (error: any) {
+        if (error?.message === 'NOT_ALLOWED') return NextResponse.json({ error: 'Você só pode aceitar propostas da sua própria cotação.' }, { status: 403 })
+        throw error
+      }
     }
 
     if (user.role !== 'LOJISTA' || !user.storeProfile) {
