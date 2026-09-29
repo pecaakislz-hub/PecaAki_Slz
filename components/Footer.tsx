@@ -1,10 +1,10 @@
 import Link from 'next/link'
-import { MapPin, ShieldCheck, Phone, FileText, Info } from 'lucide-react'
+import { BookOpen, MapPin, ShieldCheck, Phone, FileText, Info } from 'lucide-react'
 import ThemeToggle from './ThemeToggle'
 
 export default function Footer() {
   return (
-    <footer className="bg-slate-100 text-slate-600 dark:bg-slate-950 dark:text-slate-400 border-t border-slate-200 dark:border-slate-800 text-sm transition-colors duration-200">
+    <footer className="bg-slate-100 pb-20 text-slate-600 transition-colors duration-200 dark:bg-slate-950 dark:text-slate-400 md:pb-0">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
         <div className="grid grid-cols-1 md:grid-cols-4 gap-8 mb-8">
           {/* Coluna 1: Marca & Região */}
@@ -47,6 +47,12 @@ export default function Footer() {
               <li>
                 <Link href="/cadastro?role=LOJISTA" className="hover:text-amber-500 dark:hover:text-amber-400 transition-colors">
                   Cadastrar Minha Autopeça / Motopeça
+                </Link>
+              </li>
+              <li>
+                <Link href="/guias" className="flex items-center gap-1.5 hover:text-amber-500 dark:hover:text-amber-400 transition-colors">
+                  <BookOpen className="h-3.5 w-3.5" />
+                  Guias de Orientação
                 </Link>
               </li>
             </ul>
