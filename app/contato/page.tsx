@@ -1,134 +1,36 @@
 'use client'
 
-import { useState } from 'react'
-import { Phone, Mail, MapPin, MessageCircle, Send, CheckCircle2, Store, Sparkles } from 'lucide-react'
+import { Mail, MessageCircle, Phone, Send, Store } from 'lucide-react'
+
+const whatsapp = 'https://wa.me/5598981470668?text=Ol%C3%A1%20Pe%C3%A7aAki!%20Preciso%20de%20suporte%20na%20plataforma.'
+const email = 'mailto:dsdodo18@hotmail.com?subject=Contato%20e%20suporte%20Pe%C3%A7aAki'
 
 export default function ContactPage() {
-  const [name, setName] = useState('')
-  const [phone, setPhone] = useState('')
-  const [message, setMessage] = useState('')
-  const [sent, setSent] = useState(false)
+  return <div className="mx-auto max-w-4xl space-y-8 py-8">
+    <section className="surface-panel rounded-3xl border p-6 text-center shadow-sm sm:p-10">
+      <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-2xl bg-amber-500/10 text-amber-500"><Phone className="h-6 w-6" /></div>
+      <h1 className="mt-3 text-3xl font-black text-slate-900 dark:text-white">Atendimento e Suporte</h1>
+      <p className="mx-auto mt-3 max-w-lg text-xs leading-relaxed text-slate-600 dark:text-slate-200 sm:text-sm">Escolha o canal mais conveniente para falar sobre cotações, cadastro, pedidos ou credenciamento de serviços.</p>
+    </section>
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault()
-    setSent(true)
-  }
+    <div className="grid gap-5 md:grid-cols-2">
+      <a href={whatsapp} target="_blank" rel="noreferrer" className="surface-panel group rounded-3xl border p-6 shadow-sm transition hover:-translate-y-0.5 hover:border-emerald-400 dark:hover:border-emerald-500">
+        <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-emerald-500/10 text-emerald-600 dark:text-emerald-300"><MessageCircle className="h-5 w-5" /></div>
+        <h2 className="mt-4 text-base font-black text-slate-900 group-hover:text-emerald-600 dark:text-white dark:group-hover:text-emerald-300">WhatsApp Comercial</h2>
+        <p className="mt-1 text-sm font-semibold text-slate-600 dark:text-slate-200">(98) 98147-0668</p>
+        <span className="mt-4 inline-flex items-center gap-1 text-[11px] font-black text-emerald-600 dark:text-emerald-300">Chamar no WhatsApp <Send className="h-3.5 w-3.5" /></span>
+      </a>
 
-  return (
-    <div className="max-w-4xl mx-auto py-8 space-y-8">
-      <div className="bg-slate-900 border border-slate-800 rounded-3xl p-6 sm:p-10 text-center space-y-3">
-        <div className="w-12 h-12 rounded-2xl bg-amber-500/10 text-amber-400 flex items-center justify-center mx-auto text-xl">
-          📞
-        </div>
-        <h1 className="text-3xl font-black text-white">Atendimento & Suporte</h1>
-        <p className="text-xs sm:text-sm text-slate-300 max-w-lg mx-auto">
-          Fale com nossa equipe comercial na Grande São Luís ou tire suas dúvidas sobre cotações e credenciamento de lojas.
-        </p>
-      </div>
-
-      <div className="grid grid-cols-1 md:grid-cols-12 gap-8">
-        {/* CARDS DE CONTATO DIRETO */}
-        <div className="md:col-span-5 space-y-4">
-          <a
-            href="https://wa.me/5598988776655?text=Olá%20PeçaAki!%20Preciso%20de%20suporte%20na%20plataforma."
-            target="_blank"
-            rel="noreferrer"
-            className="block bg-slate-900 p-6 rounded-3xl border border-slate-800 hover:border-emerald-500/50 transition-all space-y-2 group"
-          >
-            <div className="w-10 h-10 rounded-xl bg-emerald-500/10 text-emerald-400 flex items-center justify-center font-bold">
-              <MessageCircle className="w-5 h-5" />
-            </div>
-            <h3 className="text-base font-bold text-white group-hover:text-emerald-400 transition-colors">
-              WhatsApp Comercial
-            </h3>
-            <p className="text-xs text-slate-400">(98) 98877-6655</p>
-            <span className="text-[11px] font-bold text-emerald-400 flex items-center gap-1">
-              Atendimento Imediato →
-            </span>
-          </a>
-
-          <div className="bg-slate-900 p-6 rounded-3xl border border-slate-800 space-y-3 text-xs text-slate-300">
-            <div className="flex items-center gap-2 text-white font-bold text-sm">
-              <MapPin className="w-4 h-4 text-amber-400" /> Sede Comercial na Ilha
-            </div>
-            <p className="text-slate-400">
-              Av. dos Holandeses, Quadra 12 - Ed. Calhau Corporate, Sala 402 - Calhau, São Luís - MA
-            </p>
-            <div className="pt-2 border-t border-slate-800 text-[11px] text-amber-400 font-semibold">
-              E-mail: contato@pecaaki.com.br
-            </div>
-          </div>
-
-          <div className="bg-gradient-to-br from-amber-500/10 to-amber-500/5 border border-amber-500/20 p-6 rounded-3xl space-y-2">
-            <div className="flex items-center gap-1.5 text-amber-400 font-bold text-sm">
-              <Store className="w-4 h-4" /> Quer Credenciar sua Loja?
-            </div>
-            <p className="text-xs text-slate-300 leading-relaxed">
-              Cadastre sua autopeça ou motopeça e comece a responder cotações nos bairros da Grande São Luís ainda hoje.
-            </p>
-          </div>
-        </div>
-
-        {/* FORMULÁRIO DE ATENDIMENTO */}
-        <div className="md:col-span-7 bg-slate-900 border border-slate-800 rounded-3xl p-6 sm:p-8 space-y-6">
-          <h2 className="text-xl font-extrabold text-white">Envie uma Mensagem</h2>
-
-          {sent ? (
-            <div className="bg-emerald-500/10 border border-emerald-500/30 p-6 rounded-2xl text-center space-y-2">
-              <CheckCircle2 className="w-10 h-10 text-emerald-400 mx-auto" />
-              <h3 className="text-base font-bold text-white">Mensagem Enviada!</h3>
-              <p className="text-xs text-slate-300">
-                Nossa equipe entrará em contato via WhatsApp em até 1 hora comercial.
-              </p>
-            </div>
-          ) : (
-            <form onSubmit={handleSubmit} className="space-y-4">
-              <div>
-                <label className="block text-xs font-semibold text-slate-300 mb-1">Seu Nome</label>
-                <input
-                  type="text"
-                  required
-                  value={name}
-                  onChange={(e) => setName(e.target.value)}
-                  placeholder="Ex: João da Silva"
-                  className="w-full bg-slate-950 border border-slate-800 rounded-xl py-2.5 px-3 text-sm text-white focus:outline-none focus:border-amber-500"
-                />
-              </div>
-
-              <div>
-                <label className="block text-xs font-semibold text-slate-300 mb-1">WhatsApp de Contato</label>
-                <input
-                  type="tel"
-                  required
-                  value={phone}
-                  onChange={(e) => setPhone(e.target.value)}
-                  placeholder="(98) 98888-7777"
-                  className="w-full bg-slate-950 border border-slate-800 rounded-xl py-2.5 px-3 text-sm text-white focus:outline-none focus:border-amber-500"
-                />
-              </div>
-
-              <div>
-                <label className="block text-xs font-semibold text-slate-300 mb-1">Mensagem ou Dúvida</label>
-                <textarea
-                  rows={4}
-                  required
-                  value={message}
-                  onChange={(e) => setMessage(e.target.value)}
-                  placeholder="Como podemos te ajudar hoje?"
-                  className="w-full bg-slate-950 border border-slate-800 rounded-xl py-2.5 px-3 text-sm text-white focus:outline-none focus:border-amber-500"
-                />
-              </div>
-
-              <button
-                type="submit"
-                className="w-full bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold py-3 rounded-xl text-sm flex items-center justify-center gap-2 shadow-lg shadow-amber-500/20 transition-all"
-              >
-                <Send className="w-4 h-4" /> Enviar Mensagem
-              </button>
-            </form>
-          )}
-        </div>
-      </div>
+      <a href={email} className="surface-panel group rounded-3xl border p-6 shadow-sm transition hover:-translate-y-0.5 hover:border-amber-400 dark:hover:border-amber-500">
+        <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-amber-500/10 text-amber-600 dark:text-amber-300"><Mail className="h-5 w-5" /></div>
+        <h2 className="mt-4 text-base font-black text-slate-900 group-hover:text-amber-600 dark:text-white dark:group-hover:text-amber-300">Envie um e-mail</h2>
+        <p className="mt-1 break-all text-sm font-semibold text-slate-600 dark:text-slate-200">dsdodo18@hotmail.com</p>
+        <span className="mt-4 inline-flex items-center gap-1 text-[11px] font-black text-amber-600 dark:text-amber-300">Abrir mensagem de e-mail <Send className="h-3.5 w-3.5" /></span>
+      </a>
     </div>
-  )
+
+    <section className="surface-panel rounded-3xl border p-6 shadow-sm sm:p-8">
+      <div className="flex items-start gap-3"><div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-sky-500/10 text-sky-600 dark:text-sky-300"><Store className="h-5 w-5" /></div><div><h2 className="text-xl font-black text-slate-900 dark:text-white">Credenciamento de serviços</h2><p className="mt-2 text-xs leading-relaxed text-slate-600 dark:text-slate-200 sm:text-sm">Vendedores, oficinas e guinchos podem começar pelo cadastro do perfil correspondente e depois acessar o painel para configurar seus dados e responder às oportunidades.</p><div className="mt-4 flex flex-wrap gap-2"><a href="/cadastro?role=VENDEDOR" className="inline-flex items-center rounded-xl bg-emerald-500 px-3 py-2 text-xs font-black text-white hover:bg-emerald-600">Cadastrar vendedor</a><a href="/cadastro?role=OFICINA" className="inline-flex items-center rounded-xl border border-slate-300 px-3 py-2 text-xs font-black text-slate-700 hover:bg-slate-50 dark:border-slate-600 dark:text-slate-100 dark:hover:bg-slate-800">Cadastrar oficina</a><a href="/cadastro?role=GUINCHO" className="inline-flex items-center rounded-xl border border-slate-300 px-3 py-2 text-xs font-black text-slate-700 hover:bg-slate-50 dark:border-slate-600 dark:text-slate-100 dark:hover:bg-slate-800">Cadastrar guincho</a></div></div></div>
+    </section>
+  </div>
 }

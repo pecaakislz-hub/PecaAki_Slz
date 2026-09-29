@@ -80,17 +80,14 @@ export default function GaragePage() {
             <Car className="w-4 h-4" /> Sua Frota Pessoal & Profissional
           </div>
           <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900 dark:text-white">Garagem Virtual</h1>
-          <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-400">
-            Salve seus automóveis e motocicletas para realizar cotações com 1 único clique.
+          <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-300">
+            Complete seus dados de comprador, salve seus automóveis e motocicletas e use cada veículo para montar uma cotação com 1 único clique.
           </p>
         </div>
-
-        <button
-          onClick={() => setShowModal(true)}
-          className="bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold px-4 py-2.5 rounded-xl text-sm flex items-center gap-2 shadow-lg shadow-amber-500/20 transition-all shrink-0"
-        >
-          <Plus className="w-4 h-4" /> Adicionar Veículo
-        </button>
+        <div className="flex shrink-0 flex-wrap gap-2">
+          <Link href="/conta" className="rounded-xl border border-slate-300 bg-white/70 px-3 py-2.5 text-xs font-bold text-slate-700 hover:bg-slate-100 dark:border-slate-600 dark:bg-slate-800/70 dark:text-slate-100 dark:hover:bg-slate-700">Completar meus dados</Link>
+          <button onClick={() => setShowModal(true)} className="flex items-center gap-2 rounded-xl bg-amber-500 px-4 py-2.5 text-sm font-bold text-slate-950 shadow-lg shadow-amber-500/20 transition-all hover:bg-amber-400"><Plus className="h-4 w-4" /> Adicionar Veículo</button>
+        </div>
       </div>
 
       {/* LISTA DE VEÍCULOS */}

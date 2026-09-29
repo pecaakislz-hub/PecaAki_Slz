@@ -36,7 +36,7 @@ export default function Footer() {
               </li>
               <li>
                 <Link href="/garagem" className="hover:text-amber-500 dark:hover:text-amber-400 transition-colors">
-                  Garagem Virtual
+                  Garagem Virtual — completar comprador e cotar
                 </Link>
               </li>
               <li>
@@ -45,7 +45,7 @@ export default function Footer() {
                 </Link>
               </li>
               <li>
-                <Link href="/cadastro?role=LOJISTA" className="hover:text-amber-500 dark:hover:text-amber-400 transition-colors">
+                <Link href="/cadastro?role=VENDEDOR" className="hover:text-amber-500 dark:hover:text-amber-400 transition-colors">
                   Cadastrar Minha Autopeça / Motopeça
                 </Link>
               </li>
@@ -83,7 +83,7 @@ export default function Footer() {
               <li>
                 <Link href="/contato" className="flex items-center gap-1.5 hover:text-amber-500 dark:hover:text-amber-400 transition-colors">
                   <Phone className="w-3.5 h-3.5" />
-                  Contato & Suporte WhatsApp
+                  Contato & Suporte
                 </Link>
               </li>
             </ul>
@@ -91,7 +91,7 @@ export default function Footer() {
 
           {/* Coluna 4: Atendimento & Alternar Tema */}
           <div className="space-y-3">
-            <h4 className="font-semibold text-slate-900 dark:text-white uppercase tracking-wider text-xs">Atendimento na Ilha</h4>
+            <h4 className="font-semibold text-slate-900 dark:text-white uppercase tracking-wider text-xs">Atendimento</h4>
             <p className="text-xs leading-relaxed">
               Segunda a Sexta: 08:00 às 18:00
               <br />
