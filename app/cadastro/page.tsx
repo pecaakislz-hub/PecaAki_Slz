@@ -4,6 +4,7 @@ import { useState, useEffect, Suspense } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import { User, Store, Wrench, Truck, Mail, Phone, Lock, MapPin, Building, AlertCircle, ArrowRight, ShieldCheck } from 'lucide-react'
+import ProfileImageEditor from '@/components/ProfileImageEditor'
 
 function RegisterContent() {
   const router = useRouter()
@@ -16,6 +17,7 @@ function RegisterContent() {
   const [password, setPassword] = useState('')
   const [city, setCity] = useState('São Luís')
   const [neighborhood, setNeighborhood] = useState('')
+  const [avatarUrl, setAvatarUrl] = useState('')
   
   // Dados de Lojista
   const [companyName, setCompanyName] = useState('')
@@ -44,7 +46,8 @@ function RegisterContent() {
         phone,
         role,
         city,
-        neighborhood: neighborhood || 'Centro'
+        neighborhood: neighborhood || 'Centro',
+        avatarUrl: avatarUrl || null
       }
 
       if (role === 'VENDEDOR') {
@@ -208,6 +211,8 @@ function RegisterContent() {
               />
             </div>
           </div>
+
+          <ProfileImageEditor value={avatarUrl} onChange={setAvatarUrl} />
 
           {/* Campos adicionais para Lojistas */}
           {role === 'VENDEDOR' && (

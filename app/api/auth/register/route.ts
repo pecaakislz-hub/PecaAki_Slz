@@ -5,7 +5,7 @@ import { db } from '@/lib/db'
 export async function POST(req: Request) {
   try {
     const body = await req.json()
-    const { name, email, password, phone, role, city, neighborhood, storeData } = body
+    const { name, email, password, phone, role, city, neighborhood, storeData, avatarUrl } = body
     if (!name || !email || !password || !phone) {
       return NextResponse.json({ error: 'Preencha todos os campos obrigatórios' }, { status: 400 })
     }
@@ -22,6 +22,7 @@ export async function POST(req: Request) {
       role: role || 'COMPRADOR',
       city: city || 'São Luís',
       neighborhood: neighborhood || 'Centro',
+      avatarUrl: typeof avatarUrl === 'string' ? avatarUrl : null,
       storeProfile: storeData,
     })
     return NextResponse.json({

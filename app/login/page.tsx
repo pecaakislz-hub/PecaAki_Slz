@@ -101,6 +101,11 @@ export default function LoginPage() {
                 className="w-full bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-xl py-2.5 pl-9 pr-3 text-sm text-slate-900 dark:text-white focus:outline-none focus:border-amber-500 transition-colors"
               />
             </div>
+            <div className="mt-1 text-right">
+              <Link href="/recuperar-senha" className="text-xs font-bold text-amber-600 hover:underline dark:text-amber-400">
+                Esqueci minha senha
+              </Link>
+            </div>
           </div>
 
           <button

@@ -13,6 +13,7 @@ model User {
   name         String
   email        String   @unique
   passwordHash String
+  avatarUrl    String?
   phone        String
   role         String   @default("COMPRADOR") // COMPRADOR, LOJISTA, ADMIN
   city         String   @default("São Luís")
@@ -20,12 +21,25 @@ model User {
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
 
-  storeProfile  StoreProfile?
-  vehicles      Vehicle[]
-  quoteRequests QuoteRequest[]
-  notifications Notification[]
-  purchases     Purchase[]
-  reviews       Review[]
+  storeProfile        StoreProfile?
+  vehicles            Vehicle[]
+  quoteRequests       QuoteRequest[]
+  notifications       Notification[]
+  purchases           Purchase[]
+  reviews             Review[]
+  passwordResetTokens PasswordResetToken[]
+}
+
+model PasswordResetToken {
+  id        String    @id @default(uuid())
+  userId    String
+  tokenHash String    @unique
+  expiresAt DateTime
+  usedAt    DateTime?
+  createdAt DateTime  @default(now())
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, expiresAt])
 }
 
 model StoreProfile {

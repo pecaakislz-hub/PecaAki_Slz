@@ -23,6 +23,7 @@ export interface UserData {
   name: string
   email: string
   passwordHash: string
+  avatarUrl?: string | null
   phone: string
   role: string // 'COMPRADOR', 'LOJISTA', 'ADMIN'
   city: string
@@ -328,6 +329,7 @@ const quotesMemory: QuoteRequestData[] = [
 const purchasesMemory: PurchaseData[] = []
 const reviewsMemory: ReviewData[] = []
 const notificationsMemory: Array<{ id: string; userId: string; title: string; message: string; link?: string | null; read: boolean; createdAt: Date }> = []
+const passwordResetTokensMemory: Array<{ id: string; userId: string; tokenHash: string; expiresAt: Date; usedAt?: Date | null; createdAt: Date }> = []
 
 // ----------------------------------------------------
 // OPERAÇÕES DO BANCO DE DADOS HÍBRIDO
@@ -375,6 +377,7 @@ export const db = {
             ...(data.phone !== undefined ? { phone: data.phone } : {}),
             ...(data.city !== undefined ? { city: data.city } : {}),
             ...(data.neighborhood !== undefined ? { neighborhood: data.neighborhood } : {}),
+            ...(data.avatarUrl !== undefined ? { avatarUrl: data.avatarUrl } : {}),
           },
           include: { storeProfile: true },
         })
@@ -409,6 +412,7 @@ export const db = {
             name: data.name,
             email: data.email.toLowerCase(),
             passwordHash: data.passwordHash,
+            avatarUrl: data.avatarUrl || null,
             phone: data.phone,
             role: data.role || 'COMPRADOR',
             city: data.city || 'São Luís',
@@ -443,6 +447,7 @@ export const db = {
       name: data.name,
       email: data.email,
       passwordHash: data.passwordHash,
+      avatarUrl: data.avatarUrl || null,
       phone: data.phone,
       role: data.role || 'COMPRADOR',
       city: data.city || 'São Luís',
@@ -472,6 +477,60 @@ export const db = {
 
     usersMemory.push(newUser)
     return newUser
+  },
+
+  createPasswordResetToken: async (userId: string, tokenHash: string, expiresAt: Date) => {
+    if (isPrismaConfigured()) {
+      try {
+        await prisma.passwordResetToken.deleteMany({ where: { userId } })
+        return await prisma.passwordResetToken.create({ data: { userId, tokenHash, expiresAt } })
+      } catch (e) {
+        console.warn('Prisma create password reset token error, fallback to memory:', e)
+      }
+    }
+    for (let i = passwordResetTokensMemory.length - 1; i >= 0; i -= 1) {
+      if (passwordResetTokensMemory[i].userId === userId) passwordResetTokensMemory.splice(i, 1)
+    }
+    const item = { id: `reset-${Date.now()}`, userId, tokenHash, expiresAt, usedAt: null, createdAt: new Date() }
+    passwordResetTokensMemory.push(item)
+    return item
+  },
+
+  findValidPasswordResetToken: async (tokenHash: string) => {
+    if (isPrismaConfigured()) {
+      try {
+        return await prisma.passwordResetToken.findFirst({ where: { tokenHash, usedAt: null, expiresAt: { gt: new Date() } }, include: { user: true } })
+      } catch (e) {
+        console.warn('Prisma find password reset token error, fallback to memory:', e)
+      }
+    }
+    const item = passwordResetTokensMemory.find((entry) => entry.tokenHash === tokenHash && !entry.usedAt && entry.expiresAt > new Date())
+    if (!item) return null
+    const user = usersMemory.find((entry) => entry.id === item.userId)
+    return user ? { ...item, user } : null
+  },
+
+  consumePasswordResetToken: async (id: string, passwordHash: string) => {
+    if (isPrismaConfigured()) {
+      try {
+        const token = await prisma.passwordResetToken.findUnique({ where: { id } })
+        if (!token || token.usedAt || token.expiresAt <= new Date()) return false
+        await prisma.$transaction([
+          prisma.user.update({ where: { id: token.userId }, data: { passwordHash } }),
+          prisma.passwordResetToken.update({ where: { id }, data: { usedAt: new Date() } })
+        ])
+        return true
+      } catch (e) {
+        console.warn('Prisma consume password reset token error, fallback to memory:', e)
+      }
+    }
+    const token = passwordResetTokensMemory.find((entry) => entry.id === id)
+    if (!token || token.usedAt || token.expiresAt <= new Date()) return false
+    const user = usersMemory.find((entry) => entry.id === token.userId)
+    if (!user) return false
+    user.passwordHash = passwordHash
+    token.usedAt = new Date()
+    return true
   },
 
   // Veículos
