@@ -496,6 +496,21 @@ export const db = {
     return item
   },
 
+  deletePasswordResetToken: async (id: string) => {
+    if (isPrismaConfigured()) {
+      try {
+        await prisma.passwordResetToken.delete({ where: { id } })
+        return true
+      } catch (e) {
+        console.warn('Prisma delete password reset token error:', e)
+      }
+    }
+    const index = passwordResetTokensMemory.findIndex((entry) => entry.id === id)
+    if (index < 0) return false
+    passwordResetTokensMemory.splice(index, 1)
+    return true
+  },
+
   findValidPasswordResetToken: async (tokenHash: string) => {
     if (isPrismaConfigured()) {
       try {
