@@ -150,19 +150,3 @@ model Notification {
   read      Boolean  @default(false)
   createdAt DateTime @default(now())
 }
-
-model WhatsAppMessage {
-  id             String   @id @default(uuid())
-  externalId     String   @unique
-  fromPhone      String
-  toPhone        String?
-  messageType    String
-  body           String?
-  userId         String?
-  storeProfileId String?
-  createdAt      DateTime @default(now())
-
-  @@index([userId])
-  @@index([storeProfileId])
-  @@index([fromPhone])
-}

@@ -3,10 +3,15 @@
 import { useEffect, useRef, useState } from 'react'
 import Link from 'next/link'
 import { BellRing, CheckCircle2, MessageCircle, X } from 'lucide-react'
-import { getSupabaseBrowserClient } from '@/lib/supabase-browser'
 
 type Toast = { id: string; title: string; message: string; link?: string | null; kind: 'notification' | 'purchase' }
 
+/**
+ * Notificações internas do painel.
+ *
+ * O sistema usa apenas o fallback automático por consulta ao endpoint protegido.
+ * Não depende da API do WhatsApp nem de um cliente Supabase no navegador.
+ */
 export default function RealtimeNotifications() {
   const [toast, setToast] = useState<Toast | null>(null)
   const seen = useRef(new Set<string>())
@@ -14,8 +19,8 @@ export default function RealtimeNotifications() {
 
   useEffect(() => {
     let cancelled = false
-    let pollTimer: ReturnType<typeof setInterval> | null = null
-    let channel: ReturnType<NonNullable<ReturnType<typeof getSupabaseBrowserClient>>['channel']> | null = null
+    let timer: ReturnType<typeof setInterval> | null = null
+
     const emit = (event: Toast) => {
       if (cancelled || seen.current.has(event.id)) return
       seen.current.add(event.id)
@@ -23,51 +28,47 @@ export default function RealtimeNotifications() {
       window.dispatchEvent(new CustomEvent('pecaaki:realtime', { detail: event }))
       window.setTimeout(() => setToast((current) => current?.id === event.id ? null : current), 7000)
     }
-    const loadSession = async () => {
-      const sessionResponse = await fetch('/api/auth/me', { cache: 'no-store' })
-      const session = await sessionResponse.json()
-      if (cancelled || !session.user) return
-      const supabase = getSupabaseBrowserClient()
-      const readDashboard = async (notifyChanges: boolean) => {
+
+    const readDashboard = async (notifyChanges: boolean) => {
+      try {
+        const sessionResponse = await fetch('/api/auth/me', { cache: 'no-store' })
+        const session = await sessionResponse.json()
+        if (cancelled || !session.user) return
+
         const response = await fetch('/api/user/dashboard', { cache: 'no-store' })
         if (!response.ok) return
         const data = await response.json()
         const notifications = data.dashboard?.notifications || []
         const purchases = data.dashboard?.purchases || []
+
         if (!initialised.current) {
           notifications.forEach((item: any) => seen.current.add(`notification:${item.id}`))
           purchases.forEach((item: any) => seen.current.add(`purchase:${item.id}:${item.status}`))
           initialised.current = true
           return
         }
-        if (notifyChanges) {
-          const latest = notifications[0]
-          if (latest) emit({ id: `notification:${latest.id}`, title: latest.title, message: latest.message, link: latest.link, kind: latest.title.toLowerCase().includes('whatsapp') ? 'notification' : 'notification' })
+
+        if (!notifyChanges) return
+        const latest = notifications[0]
+        if (latest) {
+          emit({
+            id: `notification:${latest.id}`,
+            title: latest.title,
+            message: latest.message,
+            link: latest.link,
+            kind: 'notification'
+          })
         }
-      }
-      await readDashboard(false)
-      if (supabase) {
-        channel = supabase.channel(`pecaaki-user-${session.user.id}`)
-          .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'Notification', filter: `userId=eq.${session.user.id}` }, (payload) => {
-            const row: any = payload.new
-            emit({ id: `notification:${row.id}`, title: row.title, message: row.message, link: row.link, kind: row.title?.toLowerCase().includes('whatsapp') ? 'notification' : 'notification' })
-            window.dispatchEvent(new CustomEvent('pecaaki:refresh-dashboard'))
-          })
-          .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'Purchase', filter: `userId=eq.${session.user.id}` }, (payload) => {
-            const row: any = payload.new
-            emit({ id: `purchase:${row.id}:${row.status}`, title: 'Pedido atualizado', message: `Seu pedido mudou para ${String(row.status).toLowerCase().replace('_', ' ')}.`, link: '/cotacoes?view=purchases', kind: 'purchase' })
-            window.dispatchEvent(new CustomEvent('pecaaki:refresh-dashboard'))
-          })
-          .subscribe()
-      } else {
-        pollTimer = setInterval(() => readDashboard(true), 15000)
+      } catch {
+        // Falhas momentâneas não interrompem o polling seguinte.
       }
     }
-    loadSession().catch(() => {})
+
+    readDashboard(false).catch(() => {})
+    timer = setInterval(() => readDashboard(true), 15000)
     return () => {
       cancelled = true
-      if (pollTimer) clearInterval(pollTimer)
-      if (channel) getSupabaseBrowserClient()?.removeChannel(channel)
+      if (timer) clearInterval(timer)
     }
   }, [])
 

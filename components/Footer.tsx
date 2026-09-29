@@ -11,7 +11,7 @@ export default function Footer() {
           <div className="space-y-3">
             <div className="flex items-center gap-2">
               <img
-                src="/PeçaAki_Logomarca_SF.png"
+                src="/logo-pecaaki-slz.png"
                 alt="PeçaAki Logo"
                 className="h-9 w-auto object-contain"
               />

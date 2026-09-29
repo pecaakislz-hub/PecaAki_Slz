@@ -12,7 +12,7 @@ export default function AboutPage() {
       {/* HEADER HERO */}
       <div className="bg-slate-900 border border-slate-800 rounded-3xl p-6 sm:p-12 space-y-4 text-center relative overflow-hidden">
         <img
-          src="/PeçaAki_Logomarca_SF.png"
+          src="/logo-pecaaki-slz.png"
           alt="PeçaAki Logo"
           className="h-16 sm:h-20 w-auto mx-auto object-contain drop-shadow-lg mb-2"
         />

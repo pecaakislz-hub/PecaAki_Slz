@@ -328,7 +328,6 @@ const quotesMemory: QuoteRequestData[] = [
 const purchasesMemory: PurchaseData[] = []
 const reviewsMemory: ReviewData[] = []
 const notificationsMemory: Array<{ id: string; userId: string; title: string; message: string; link?: string | null; read: boolean; createdAt: Date }> = []
-const whatsappMessagesMemory: Array<{ id: string; externalId: string; fromPhone: string; toPhone?: string | null; messageType: string; body?: string | null; userId?: string | null; storeProfileId?: string | null; createdAt: Date }> = []
 
 // ----------------------------------------------------
 // OPERAÇÕES DO BANCO DE DADOS HÍBRIDO
@@ -783,34 +782,4 @@ export const db = {
     notificationsMemory.filter((notification) => notification.userId === userId).forEach((notification) => { notification.read = true }); return { count: 0 }
   },
 
-  ingestWhatsAppMessage: async (data: { externalId: string; fromPhone: string; toPhone?: string | null; messageType: string; body?: string | null }) => {
-    if (isPrismaConfigured()) {
-      const existing = await prisma.whatsAppMessage.findUnique({ where: { externalId: data.externalId } })
-      if (existing) return existing
-      const users = await prisma.user.findMany({ select: { id: true, phone: true, storeProfile: { select: { id: true, userId: true, phone: true } } } })
-      const normalize = (value?: string | null) => (value || '').replace(/\D/g, '')
-      const from = normalize(data.fromPhone)
-      const to = normalize(data.toPhone)
-      const sender = users.find((item) => normalize(item.phone).endsWith(from.slice(-8)) || normalize(item.storeProfile?.phone).endsWith(from.slice(-8)))
-      const recipientStore = users.find((item) => item.storeProfile && (normalize(item.storeProfile.phone).endsWith(to.slice(-8)) || normalize(item.phone).endsWith(to.slice(-8))))
-      const recipientUserId = recipientStore?.storeProfile?.userId || sender?.id || null
-      const message = await prisma.whatsAppMessage.create({ data: { externalId: data.externalId, fromPhone: data.fromPhone, toPhone: data.toPhone || null, messageType: data.messageType, body: data.body || null, userId: sender?.id || null, storeProfileId: recipientStore?.storeProfile?.id || null } })
-      if (recipientUserId) {
-        await prisma.notification.create({ data: { userId: recipientUserId, title: 'Nova mensagem no WhatsApp', message: `${sender?.id ? 'Um contato' : 'Uma pessoa'} enviou uma mensagem${data.body ? `: ${data.body.slice(0, 120)}` : '.'}`, link: '/cotacoes?view=purchases' } })
-      }
-      return message
-    }
-    const existing = whatsappMessagesMemory.find((item) => item.externalId === data.externalId)
-    if (existing) return existing
-    const normalize = (value?: string | null) => (value || '').replace(/\D/g, '')
-    const from = normalize(data.fromPhone)
-    const to = normalize(data.toPhone)
-    const sender = from.length >= 8 ? usersMemory.find((item) => normalize(item.phone).endsWith(from.slice(-8))) : undefined
-    const recipientStore = to.length >= 8 ? storesMemory.find((store) => normalize(store.phone).endsWith(to.slice(-8))) : undefined
-    const recipientUserId = recipientStore?.userId || sender?.id || null
-    const message = { id: `whatsapp-${Date.now()}`, ...data, createdAt: new Date(), userId: sender?.id || null, storeProfileId: recipientStore?.id || null }
-    whatsappMessagesMemory.unshift(message)
-    if (recipientUserId) notificationsMemory.unshift({ id: `notification-${Date.now()}`, userId: recipientUserId, title: 'Nova mensagem no WhatsApp', message: data.body ? `Mensagem recebida: ${data.body.slice(0, 120)}` : 'Você recebeu uma nova mensagem no WhatsApp.', link: '/cotacoes?view=purchases', read: false, createdAt: new Date() })
-    return message
-  }
 }

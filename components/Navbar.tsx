@@ -45,7 +45,9 @@ export default function Navbar() {
     <header className="sticky top-0 z-50 border-b border-slate-200 bg-white/95 shadow-sm backdrop-blur-md transition-colors dark:border-slate-800 dark:bg-slate-950/95">
       <div className="mx-auto flex h-16 max-w-7xl items-center justify-between gap-3 px-4 sm:px-6 lg:px-8">
         <Link href="/" className="flex min-w-0 items-center gap-2.5 group" onClick={closeMenu}>
-          <img src="/PeçaAki_Logomarca_SF.png" alt="PeçaAki Logo" className="h-10 w-auto object-contain transition-transform group-hover:scale-105 sm:h-11" />
+          <span className="flex h-14 items-center rounded-xl px-1 transition-colors dark:bg-white/95 dark:px-2">
+            <img src="/logo-pecaaki-slz.png" alt="PeçaAki Auto & Moto" className="h-12 w-auto max-w-[clamp(8.5rem,42vw,12.5rem)] object-contain transition-transform group-hover:scale-[1.02] sm:h-14" />
+          </span>
           <span className="hidden truncate text-[10px] font-bold uppercase tracking-wider text-amber-600 dark:text-amber-400 sm:inline-block">Grande São Luís - MA</span>
         </Link>
 

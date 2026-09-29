@@ -52,7 +52,7 @@ export default function LoginPage() {
       <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-6 sm:p-8 shadow-xl dark:shadow-2xl space-y-6 transition-colors duration-200">
         <div className="text-center space-y-2">
           <img
-            src="/PeçaAki_Logomarca_SF.png"
+            src="/logo-pecaaki-slz.png"
             alt="PeçaAki Logo"
             className="h-14 sm:h-16 w-auto mx-auto object-contain drop-shadow-md mb-2"
           />

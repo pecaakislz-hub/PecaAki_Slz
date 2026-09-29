@@ -1,7 +1,12 @@
-const CACHE_NAME = 'pecaaki-v1'
+const CACHE_NAME = 'pecaaki-v2-brand'
 const ASSETS_TO_CACHE = [
   '/',
   '/manifest.webmanifest',
+  '/logo-pecaaki-slz.png',
+  '/icon-192x192.png',
+  '/icon-512x512.png',
+  '/apple-touch-icon.png',
+  '/favicon.ico',
   '/garagem',
   '/cotacoes',
   '/lojista/radar',
