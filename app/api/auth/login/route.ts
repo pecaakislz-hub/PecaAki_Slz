@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server'
 import bcrypt from 'bcryptjs'
 import { db } from '@/lib/db'
 import { signToken } from '@/lib/auth'
+import { ensureSupabaseUser } from '@/lib/supabase-admin'
 
 export async function POST(req: Request) {
   try {
@@ -21,6 +22,13 @@ export async function POST(req: Request) {
     const passwordMatch = await bcrypt.compare(password, user.passwordHash)
     if (!passwordMatch) {
       return NextResponse.json({ error: 'E-mail ou senha inválidos' }, { status: 401 })
+    }
+
+    try {
+      await ensureSupabaseUser(user.email, password, { app_user_id: user.id, role: user.role })
+    } catch (error) {
+      // O login legado continua funcionando; o erro será corrigido na próxima tentativa.
+      console.error('Não foi possível sincronizar o usuário com o Supabase Auth:', error)
     }
 
     const token = signToken({ userId: user.id, email: user.email, role: user.role })

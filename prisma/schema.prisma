@@ -21,25 +21,12 @@ model User {
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
 
-  storeProfile        StoreProfile?
-  vehicles            Vehicle[]
-  quoteRequests       QuoteRequest[]
-  notifications       Notification[]
-  purchases           Purchase[]
-  reviews             Review[]
-  passwordResetTokens PasswordResetToken[]
-}
-
-model PasswordResetToken {
-  id        String    @id @default(uuid())
-  userId    String
-  tokenHash String    @unique
-  expiresAt DateTime
-  usedAt    DateTime?
-  createdAt DateTime  @default(now())
-  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  @@index([userId, expiresAt])
+  storeProfile  StoreProfile?
+  vehicles      Vehicle[]
+  quoteRequests QuoteRequest[]
+  notifications Notification[]
+  purchases     Purchase[]
+  reviews       Review[]
 }
 
 model StoreProfile {

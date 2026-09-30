@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server'
 import bcrypt from 'bcryptjs'
 import { db } from '@/lib/db'
+import { getSupabaseAdmin, ensureSupabaseUser } from '@/lib/supabase-admin'
 
 export async function POST(req: Request) {
   try {
@@ -12,6 +13,9 @@ export async function POST(req: Request) {
     const existingUser = await db.findUserByEmail(email)
     if (existingUser) {
       return NextResponse.json({ error: 'E-mail já cadastrado na plataforma' }, { status: 400 })
+    }
+    if (process.env.NODE_ENV === 'production' && !getSupabaseAdmin()) {
+      return NextResponse.json({ error: 'O cadastro está temporariamente indisponível enquanto o Supabase Auth não está configurado.' }, { status: 503 })
     }
     const passwordHash = await bcrypt.hash(password, 10)
     const user = await db.createUser({
@@ -25,6 +29,12 @@ export async function POST(req: Request) {
       avatarUrl: typeof avatarUrl === 'string' ? avatarUrl : null,
       storeProfile: storeData,
     })
+    try {
+      await ensureSupabaseUser(email, password, { app_user_id: user.id, role: user.role })
+    } catch (error) {
+      await db.deleteUser(user.id)
+      throw error
+    }
     return NextResponse.json({
       success: true,
       message: 'Cadastro realizado. Faça login para acessar seu espaço.',
