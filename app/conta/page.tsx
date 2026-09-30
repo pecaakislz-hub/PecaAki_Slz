@@ -3,12 +3,14 @@
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { AlertCircle, CheckCircle2, Loader2, Save, ShieldCheck, Trash2, UserRound } from 'lucide-react'
+import ProfileImageEditor from '@/components/ProfileImageEditor'
 
-type AccountUser = { id: string; name: string; email: string; phone: string; city: string; neighborhood: string; role: string }
+type AccountUser = { id: string; name: string; email: string; phone: string; city: string; neighborhood: string; role: string; avatarUrl?: string | null }
 
 export default function AccountPage() {
   const router = useRouter()
   const [user, setUser] = useState<AccountUser | null>(null)
+  const [avatarUrl, setAvatarUrl] = useState('')
   const [form, setForm] = useState({ name: '', phone: '', city: 'São Luís', neighborhood: '' })
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
@@ -24,6 +26,7 @@ export default function AccountPage() {
           return
         }
         setUser(data.user)
+        setAvatarUrl(data.user.avatarUrl || '')
         setForm({ name: data.user.name || '', phone: data.user.phone || '', city: data.user.city || 'São Luís', neighborhood: data.user.neighborhood || '' })
       })
       .catch(() => setError('Não foi possível carregar seus dados.'))
@@ -36,7 +39,7 @@ export default function AccountPage() {
     event.preventDefault()
     setSaving(true); setError(''); setMessage('')
     try {
-      const response = await fetch('/api/auth/account', { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(form) })
+      const response = await fetch('/api/auth/account', { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ ...form, avatarUrl: avatarUrl || null }) })
       const data = await response.json()
       if (!response.ok) { setError(data.error || 'Não foi possível salvar os dados.'); return }
       setUser(data.user)
@@ -74,6 +77,7 @@ export default function AccountPage() {
         <form onSubmit={handleSave} className="space-y-4">
           <div><label className="mb-1 block text-xs font-bold text-slate-700 dark:text-slate-300">Nome e sobrenome</label><input required value={form.name} onChange={(event) => updateField('name', event.target.value)} className="w-full rounded-xl border border-slate-300 bg-slate-50 px-3 py-2.5 text-sm outline-none focus:border-amber-500 dark:border-slate-700 dark:bg-slate-950 dark:text-white" /></div>
           <div><label className="mb-1 block text-xs font-bold text-slate-700 dark:text-slate-300">E-mail</label><input disabled value={user.email} className="w-full cursor-not-allowed rounded-xl border border-slate-200 bg-slate-100 px-3 py-2.5 text-sm text-slate-500 dark:border-slate-800 dark:bg-slate-950" /><p className="mt-1 text-[11px] text-slate-500">O e-mail é o identificador da conta e não pode ser alterado aqui.</p></div>
+          <ProfileImageEditor value={avatarUrl} onChange={setAvatarUrl} />
           <div className="grid gap-4 sm:grid-cols-2"><div><label className="mb-1 block text-xs font-bold text-slate-700 dark:text-slate-300">Telefone / WhatsApp</label><input required value={form.phone} onChange={(event) => updateField('phone', event.target.value)} className="w-full rounded-xl border border-slate-300 bg-slate-50 px-3 py-2.5 text-sm outline-none focus:border-amber-500 dark:border-slate-700 dark:bg-slate-950 dark:text-white" /></div><div><label className="mb-1 block text-xs font-bold text-slate-700 dark:text-slate-300">Município</label><select value={form.city} onChange={(event) => updateField('city', event.target.value)} className="w-full rounded-xl border border-slate-300 bg-slate-50 px-3 py-2.5 text-sm outline-none focus:border-amber-500 dark:border-slate-700 dark:bg-slate-950 dark:text-white"><option>São Luís</option><option>Paço do Lumiar</option><option>São José de Ribamar</option><option>Raposa</option></select></div></div>
           <div><label className="mb-1 block text-xs font-bold text-slate-700 dark:text-slate-300">Bairro</label><input required value={form.neighborhood} onChange={(event) => updateField('neighborhood', event.target.value)} className="w-full rounded-xl border border-slate-300 bg-slate-50 px-3 py-2.5 text-sm outline-none focus:border-amber-500 dark:border-slate-700 dark:bg-slate-950 dark:text-white" /></div>
           <div className="flex flex-col justify-between gap-3 border-t border-slate-100 pt-5 dark:border-slate-800 sm:flex-row sm:items-center"><span className="inline-flex items-center gap-1.5 text-xs text-slate-500"><ShieldCheck className="h-4 w-4 text-emerald-500" /> Perfil: {user.role}</span><button disabled={saving} className="inline-flex items-center justify-center gap-2 rounded-xl bg-amber-500 px-5 py-2.5 text-sm font-bold text-slate-950 hover:bg-amber-400 disabled:opacity-60">{saving ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />} Salvar alterações</button></div>
