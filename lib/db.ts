@@ -377,7 +377,7 @@ export const db = {
   updateUser: async (id: string, data: any) => {
     if (isPrismaConfigured()) {
       try {
-        return await prisma.user.update({
+        const updated = await prisma.user.update({
           where: { id },
           data: {
             ...(data.name !== undefined ? { name: data.name } : {}),
@@ -390,6 +390,26 @@ export const db = {
           },
           include: { storeProfile: true },
         })
+        if (data.storeProfile && updated.storeProfile) {
+          await prisma.storeProfile.update({ where: { id: updated.storeProfile.id }, data: {
+            ...(data.storeProfile.companyName !== undefined ? { companyName: data.storeProfile.companyName } : {}),
+            ...(data.storeProfile.fantasyName !== undefined ? { fantasyName: data.storeProfile.fantasyName } : {}),
+            ...(data.storeProfile.cnpjCpf !== undefined ? { cnpjCpf: data.storeProfile.cnpjCpf } : {}),
+            ...(data.storeProfile.phone !== undefined ? { phone: data.storeProfile.phone } : {}),
+            ...(data.storeProfile.city !== undefined ? { city: data.storeProfile.city } : {}),
+            ...(data.storeProfile.neighborhood !== undefined ? { neighborhood: data.storeProfile.neighborhood } : {}),
+            ...(data.storeProfile.address !== undefined ? { address: data.storeProfile.address } : {}),
+            ...(data.storeProfile.categories !== undefined ? { categories: data.storeProfile.categories } : {}),
+            ...(data.storeProfile.vehicleBrands !== undefined ? { vehicleBrands: data.storeProfile.vehicleBrands } : {}),
+            ...(data.storeProfile.serviceScopes !== undefined ? { serviceScopes: data.storeProfile.serviceScopes } : {}),
+            ...(data.storeProfile.vehicleSizes !== undefined ? { vehicleSizes: data.storeProfile.vehicleSizes } : {}),
+            ...(data.storeProfile.productTypes !== undefined ? { productTypes: data.storeProfile.productTypes } : {}),
+            ...(data.storeProfile.itemConditions !== undefined ? { itemConditions: data.storeProfile.itemConditions } : {}),
+            ...(data.storeProfile.contactEmail !== undefined ? { contactEmail: data.storeProfile.contactEmail } : {}),
+            ...(data.storeProfile.socialLinks !== undefined ? { socialLinks: data.storeProfile.socialLinks } : {}),
+          } })
+        }
+        return await prisma.user.findUnique({ where: { id }, include: { storeProfile: true } })
       } catch (e) {
         console.warn('Prisma update user error, fallback to memory:', e)
       }
@@ -397,6 +417,7 @@ export const db = {
     const user = usersMemory.find((item) => item.id === id)
     if (!user) return null
     Object.assign(user, data)
+    if (data.storeProfile && user.storeProfile) Object.assign(user.storeProfile, data.storeProfile)
     return user
   },
   deleteUser: async (id: string) => {
@@ -776,7 +797,7 @@ export const db = {
   acceptProposal: async (proposalId: string, buyerId: string) => {
     if (isPrismaConfigured()) {
       return prisma.$transaction(async (tx) => {
-        const proposal = await tx.proposal.findUnique({ where: { id: proposalId }, include: { quoteRequest: true, storeProfile: true } })
+        const proposal = await tx.proposal.findUnique({ where: { id: proposalId }, include: { quoteRequest: true, storeProfile: { include: { user: { select: { role: true } } } } } })
         if (!proposal || proposal.quoteRequest.userId !== buyerId) throw new Error('NOT_ALLOWED')
         const existing = await tx.purchase.findUnique({ where: { quoteRequestId: proposal.quoteRequestId } })
         if (existing) return { proposal, purchase: existing }
@@ -785,7 +806,7 @@ export const db = {
         await tx.quoteRequest.update({ where: { id: proposal.quoteRequestId }, data: { status: 'ACCEPTED', updatedAt: new Date() } })
         const purchase = await tx.purchase.create({ data: { userId: buyerId, quoteRequestId: proposal.quoteRequestId, proposalId, storeProfileId: proposal.storeProfileId, totalPrice: proposal.cashPrice + proposal.deliveryFee } })
         await tx.notification.create({ data: { userId: buyerId, title: 'Pedido criado', message: `Seu pedido de ${proposal.quoteRequest.partName} foi criado. Combine os próximos passos com a loja.`, link: `/cotacoes?view=purchases` } })
-        await tx.notification.create({ data: { userId: proposal.storeProfile.userId, title: 'Proposta aceita', message: `Sua proposta para ${proposal.quoteRequest.partName} foi aceita pelo comprador.`, link: `/lojista/radar` } })
+        await tx.notification.create({ data: { userId: proposal.storeProfile.userId, title: 'Proposta aceita', message: `Sua proposta para ${proposal.quoteRequest.partName} foi aceita pelo comprador.`, link: proposal.storeProfile.user.role === 'GUINCHO' ? '/guincho/radar' : '/cotacoes?view=realized' } })
         return { proposal: updatedProp, purchase }
       })
     }
@@ -799,21 +820,39 @@ export const db = {
     const purchase: PurchaseData = { id: `purchase-${Date.now()}`, userId: buyerId, quoteRequestId: quote.id, proposalId, storeProfileId: proposal.storeProfileId, status: 'PENDING_CONTACT', totalPrice: proposal.cashPrice + proposal.deliveryFee, createdAt: new Date(), updatedAt: new Date(), quoteRequest: quote, proposal, storeProfile: proposal.storeProfile }
     purchasesMemory.unshift(purchase)
     notificationsMemory.unshift({ id: `notification-${Date.now()}`, userId: buyerId, title: 'Pedido criado', message: `Seu pedido de ${quote.partName} foi criado. Combine os próximos passos com a loja.`, link: '/cotacoes?view=purchases', read: false, createdAt: new Date() })
-    if (proposal.storeProfile) notificationsMemory.unshift({ id: `notification-${Date.now() + 1}`, userId: proposal.storeProfile.userId, title: 'Proposta aceita', message: `Sua proposta para ${quote.partName} foi aceita pelo comprador.`, link: '/lojista/radar', read: false, createdAt: new Date() })
+    if (proposal.storeProfile) { const storeUser = usersMemory.find((item) => item.id === proposal.storeProfile?.userId); notificationsMemory.unshift({ id: `notification-${Date.now() + 1}`, userId: proposal.storeProfile.userId, title: 'Proposta aceita', message: `Sua proposta para ${quote.partName} foi aceita pelo comprador.`, link: storeUser?.role === 'GUINCHO' ? '/guincho/radar' : '/cotacoes?view=realized', read: false, createdAt: new Date() }) }
     return { proposal, purchase }
   },
 
-  getUserDashboard: async (userId: string) => {
+  getUserDashboard: async (userId: string, role?: string) => {
     if (isPrismaConfigured()) {
+      try {
+      const account = await prisma.user.findUnique({ where: { id: userId }, select: { role: true, storeProfile: { select: { id: true } } } })
+      if (account && ['LOJISTA', 'VENDEDOR', 'GUINCHO'].includes(role || account.role) && account.storeProfile) {
+        const [proposals, purchases, reviews, notifications] = await Promise.all([
+          prisma.proposal.findMany({ where: { storeProfileId: account.storeProfile.id }, orderBy: { createdAt: 'desc' }, include: { quoteRequest: { include: { vehicle: true, user: { select: { name: true, city: true, neighborhood: true } } } }, storeProfile: true } }),
+          prisma.purchase.findMany({ where: { storeProfileId: account.storeProfile.id }, orderBy: { createdAt: 'desc' }, include: { quoteRequest: true, proposal: { include: { storeProfile: true } }, storeProfile: true } }),
+          prisma.review.findMany({ where: { storeProfileId: account.storeProfile.id }, orderBy: { createdAt: 'desc' }, include: { user: { select: { name: true } }, purchase: true } }),
+          prisma.notification.findMany({ where: { userId }, orderBy: { createdAt: 'desc' }, take: 20 }),
+        ])
+        return { quoteRequests: [], purchases: [], reviews: [], notifications, sellerProposals: proposals, sellerPurchases: purchases, sellerReviews: reviews }
+      }
       return prisma.user.findUnique({ where: { id: userId }, select: {
         quoteRequests: { orderBy: { createdAt: 'desc' }, include: { vehicle: true, proposals: { orderBy: { createdAt: 'desc' }, include: { storeProfile: true } }, purchase: { include: { proposal: { include: { storeProfile: true } }, storeProfile: true, review: true } } } },
         purchases: { orderBy: { createdAt: 'desc' }, include: { quoteRequest: true, proposal: { include: { storeProfile: true } }, storeProfile: true, review: true } },
         reviews: { orderBy: { createdAt: 'desc' }, include: { storeProfile: true, purchase: true } },
         notifications: { orderBy: { createdAt: 'desc' }, take: 20 }
       } })
+      } catch (e) {
+        console.warn('Prisma dashboard query error, fallback to memory:', e)
+      }
     }
     const quotes = quotesMemory.filter((quote) => quote.userId === userId)
     const purchases = purchasesMemory.filter((purchase) => purchase.userId === userId)
+    const seller = usersMemory.find((item) => item.id === userId)?.storeProfile
+    if (seller && ['LOJISTA', 'VENDEDOR', 'GUINCHO'].includes(role || usersMemory.find((item) => item.id === userId)?.role || '')) {
+      return { quoteRequests: [], purchases: [], reviews: [], notifications: notificationsMemory.filter((notification) => notification.userId === userId).sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime()).slice(0, 20), sellerProposals: proposalsMemory.filter((proposal) => proposal.storeProfileId === seller.id), sellerPurchases: purchasesMemory.filter((purchase) => purchase.storeProfileId === seller.id), sellerReviews: reviewsMemory.filter((review) => review.storeProfileId === seller.id) }
+    }
     return { quoteRequests: quotes, purchases, reviews: reviewsMemory.filter((review) => review.userId === userId), notifications: notificationsMemory.filter((notification) => notification.userId === userId).sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime()).slice(0, 20) }
   },
 
@@ -824,13 +863,13 @@ export const db = {
       const purchase = await prisma.purchase.findUnique({ where: { id: purchaseId }, include: { storeProfile: true, quoteRequest: true } })
       if (!purchase || purchase.userId !== userId) throw new Error('NOT_ALLOWED')
       const updated = await prisma.purchase.update({ where: { id: purchaseId }, data: { status } })
-      await prisma.notification.create({ data: { userId: purchase.storeProfile.userId, title: 'Status do pedido atualizado', message: `O pedido de ${purchase.quoteRequest.partName} foi marcado como ${status.toLowerCase().replace('_', ' ')}.`, link: '/lojista/radar' } })
+      await prisma.notification.create({ data: { userId: purchase.storeProfile.userId, title: 'Status do pedido atualizado', message: `O pedido de ${purchase.quoteRequest.partName} foi marcado como ${status.toLowerCase().replace('_', ' ')}.`, link: '/cotacoes?view=realized' } })
       return updated
     }
     const purchase = purchasesMemory.find((item) => item.id === purchaseId && item.userId === userId)
     if (!purchase) throw new Error('NOT_ALLOWED')
     purchase.status = status; purchase.updatedAt = new Date()
-    if (purchase.storeProfile) notificationsMemory.unshift({ id: `notification-${Date.now()}`, userId: purchase.storeProfile.userId, title: 'Status do pedido atualizado', message: `O pedido foi marcado como ${status.toLowerCase().replace('_', ' ')}.`, link: '/lojista/radar', read: false, createdAt: new Date() })
+    if (purchase.storeProfile) notificationsMemory.unshift({ id: `notification-${Date.now()}`, userId: purchase.storeProfile.userId, title: 'Status do pedido atualizado', message: `O pedido foi marcado como ${status.toLowerCase().replace('_', ' ')}.`, link: '/cotacoes?view=realized', read: false, createdAt: new Date() })
     return purchase
   },
 

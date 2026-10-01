@@ -15,7 +15,7 @@ function NewProposalContent() {
 
   // Form states
   const [availability, setAvailability] = useState<'IN_STOCK' | 'ON_ORDER'>('IN_STOCK')
-  const [condition, setCondition] = useState<'NEW' | 'ORIGINAL' | 'SIMILAR' | 'USED'>('NEW')
+  const [condition, setCondition] = useState<'NEW' | 'ORIGINAL' | 'SIMILAR' | 'USED' | 'RECONDITIONED'>('NEW')
   const [cashPrice, setCashPrice] = useState('')
   const [installmentPrice, setInstallmentPrice] = useState('')
   const [deliveryFee, setDeliveryFee] = useState('0')
@@ -137,6 +137,7 @@ function NewProposalContent() {
               <option value="ORIGINAL">Original Montadora</option>
               <option value="SIMILAR">Similar (Primeira Linha)</option>
               <option value="USED">Usada / Desmanche Credenciado</option>
+              <option value="RECONDITIONED">Recondicionada</option>
             </select>
           </div>
         </div>

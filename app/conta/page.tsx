@@ -6,171 +6,38 @@ import { AlertCircle, BadgeCheck, Building2, CheckCircle2, Edit3, Loader2, Mail,
 import ProfileImageEditor from '@/components/ProfileImageEditor'
 
 type StoreProfile = {
-  companyName?: string
-  fantasyName?: string
-  cnpjCpf?: string
-  phone?: string
-  city?: string
-  neighborhood?: string
-  address?: string
-  categories?: string
-  vehicleBrands?: string
-  isVerified?: boolean
+  companyName?: string; fantasyName?: string; cnpjCpf?: string; phone?: string; city?: string; neighborhood?: string; address?: string
+  categories?: string; vehicleBrands?: string; serviceScopes?: string; vehicleSizes?: string; productTypes?: string; itemConditions?: string
+  contactEmail?: string; socialLinks?: string; isVerified?: boolean
 }
+type AccountUser = { id: string; name: string; email: string; phone: string; city: string; neighborhood: string; address?: string; postalCode?: string; role: string; avatarUrl?: string | null; storeProfile?: StoreProfile | null }
+type AccountForm = { name: string; phone: string; city: string; neighborhood: string; address: string; postalCode: string; companyName: string; fantasyName: string; cnpjCpf: string; storePhone: string; storeCity: string; storeNeighborhood: string; storeAddress: string; categories: string; vehicleBrands: string; serviceScopes: string; vehicleSizes: string; productTypes: string; itemConditions: string; contactEmail: string; instagram: string; facebook: string; website: string }
 
-type AccountUser = {
-  id: string
-  name: string
-  email: string
-  phone: string
-  city: string
-  neighborhood: string
-  address?: string
-  postalCode?: string
-  role: string
-  avatarUrl?: string | null
-  storeProfile?: StoreProfile | null
-}
-
-type AccountForm = { name: string; phone: string; city: string; neighborhood: string; address: string; postalCode: string }
-
-const roleLabels: Record<string, string> = {
-  COMPRADOR: 'Comprador',
-  VENDEDOR: 'Vendedor de autopeças e motopeças',
-  LOJISTA: 'Vendedor de autopeças e motopeças',
-  OFICINA: 'Oficina',
-  GUINCHO: 'Guincho',
-  ADMIN: 'Administrador',
-}
-
-const roleDescriptions: Record<string, string> = {
-  COMPRADOR: 'Perfil para solicitar peças, serviços e acompanhar seus pedidos.',
-  VENDEDOR: 'Perfil comercial para cadastrar sua loja e responder às cotações.',
-  LOJISTA: 'Perfil comercial para cadastrar sua loja e responder às cotações.',
-  OFICINA: 'Perfil para oferecer serviços especializados de manutenção.',
-  GUINCHO: 'Perfil para oferecer serviços de reboque e assistência.',
-  ADMIN: 'Perfil administrativo da plataforma.',
-}
-
-function formatList(value?: string) {
-  if (!value) return ''
-  try {
-    const parsed = JSON.parse(value)
-    return Array.isArray(parsed) ? parsed.join(', ') : value
-  } catch {
-    return value
-  }
-}
-
-function InitialAvatar({ name }: { name: string }) {
-  const initials = name.split(' ').filter(Boolean).slice(0, 2).map((part) => part[0]).join('').toUpperCase() || 'U'
-  return <div className="flex h-24 w-24 shrink-0 items-center justify-center rounded-3xl bg-gradient-to-br from-amber-400 to-orange-600 text-3xl font-black text-white shadow-lg shadow-amber-500/20 sm:h-28 sm:w-28 sm:text-4xl">{initials}</div>
-}
-
-function DataItem({ icon: Icon, label, value }: { icon: typeof Mail; label: string; value?: string | null }) {
-  return <div className="rounded-2xl border border-slate-200/80 bg-white/70 p-4 dark:border-slate-700/70 dark:bg-slate-800/55"><div className="flex items-center gap-2 text-[11px] font-black uppercase tracking-wide text-slate-500 dark:text-slate-400"><Icon className="h-4 w-4 text-amber-500" />{label}</div><p className="mt-2 break-words text-sm font-semibold text-slate-800 dark:text-slate-100">{value || 'Não informado'}</p></div>
-}
+const roleLabels: Record<string, string> = { COMPRADOR: 'Comprador', VENDEDOR: 'Vendedor de autopeças e motopeças', LOJISTA: 'Vendedor de autopeças e motopeças', OFICINA: 'Oficina', GUINCHO: 'Guincho', ADMIN: 'Administrador' }
+const roleDescriptions: Record<string, string> = { COMPRADOR: 'Perfil para solicitar peças, serviços e acompanhar seus pedidos.', VENDEDOR: 'Perfil comercial para responder às cotações e vender peças.', LOJISTA: 'Perfil comercial para responder às cotações e vender peças.', OFICINA: 'Perfil para oferecer serviços especializados de manutenção.', GUINCHO: 'Perfil para oferecer reboque e assistência veicular.', ADMIN: 'Perfil administrativo da plataforma.' }
+const isCommercialRole = (role: string) => ['LOJISTA', 'VENDEDOR', 'OFICINA', 'GUINCHO'].includes(role)
+function listToText(value?: string) { if (!value) return ''; try { const parsed = JSON.parse(value); return Array.isArray(parsed) ? parsed.join(', ') : value } catch { return value } }
+function textToJson(value: string) { return JSON.stringify(value.split(',').map((item) => item.trim()).filter(Boolean)) }
+function socialValue(value: string | undefined, key: string) { try { const parsed = JSON.parse(value || '{}'); return parsed[key] || '' } catch { return '' } }
+function InitialAvatar({ name }: { name: string }) { const initials = name.split(' ').filter(Boolean).slice(0, 2).map((part) => part[0]).join('').toUpperCase() || 'U'; return <div className="flex h-24 w-24 shrink-0 items-center justify-center rounded-3xl bg-gradient-to-br from-amber-400 to-orange-600 text-3xl font-black text-white shadow-lg shadow-amber-500/20 sm:h-28 sm:w-28 sm:text-4xl">{initials}</div> }
+function DataItem({ icon: Icon, label, value }: { icon: typeof Mail; label: string; value?: string | null }) { return <div className="rounded-2xl border border-slate-200/80 bg-white/70 p-4 dark:border-slate-700/70 dark:bg-slate-800/55"><div className="flex items-center gap-2 text-[11px] font-black uppercase tracking-wide text-slate-500 dark:text-slate-400"><Icon className="h-4 w-4 text-amber-500" />{label}</div><p className="mt-2 break-words text-sm font-semibold text-slate-800 dark:text-slate-100">{value || 'Não informado'}</p></div> }
+function Field({ label, value, onChange, required = false, disabled = false, type = 'text' }: { label: string; value: string; onChange: (value: string) => void; required?: boolean; disabled?: boolean; type?: string }) { return <label className="block text-xs font-bold text-slate-700 dark:text-slate-300">{label}{required && <span className="text-rose-500"> *</span>}<input type={type} required={required} disabled={disabled} value={value} onChange={(event) => onChange(event.target.value)} className="mt-1 w-full rounded-xl border border-slate-300 bg-slate-50 px-3 py-2.5 text-sm font-normal outline-none transition focus:border-amber-500 disabled:cursor-not-allowed disabled:opacity-60 dark:border-slate-700 dark:bg-slate-950 dark:text-white" /></label> }
 
 export default function AccountPage() {
   const router = useRouter()
   const [user, setUser] = useState<AccountUser | null>(null)
   const [avatarUrl, setAvatarUrl] = useState('')
-  const [form, setForm] = useState<AccountForm>({ name: '', phone: '', city: 'São Luís', neighborhood: '', address: '', postalCode: '' })
-  const [loading, setLoading] = useState(true)
-  const [editing, setEditing] = useState(false)
-  const [saving, setSaving] = useState(false)
-  const [message, setMessage] = useState('')
-  const [error, setError] = useState('')
-
-  const applyUser = (nextUser: AccountUser) => {
-    setUser(nextUser)
-    setAvatarUrl(nextUser.avatarUrl || '')
-    setForm({ name: nextUser.name || '', phone: nextUser.phone || '', city: nextUser.city || 'São Luís', neighborhood: nextUser.neighborhood || '', address: nextUser.address || '', postalCode: nextUser.postalCode || '' })
-  }
-
-  useEffect(() => {
-    fetch('/api/auth/me', { cache: 'no-store' })
-      .then(async (response) => {
-        const data = await response.json()
-        if (!response.ok || !data.user) {
-          router.replace('/login')
-          return
-        }
-        applyUser(data.user)
-      })
-      .catch(() => setError('Não foi possível carregar seus dados.'))
-      .finally(() => setLoading(false))
-  }, [router])
-
-  const updateField = (field: keyof AccountForm, value: string) => setForm((current) => ({ ...current, [field]: value }))
-
-  const startEditing = () => {
-    setMessage('')
-    setError('')
-    setEditing(true)
-  }
-
-  const cancelEditing = () => {
-    if (user) applyUser(user)
-    setMessage('')
-    setError('')
-    setEditing(false)
-  }
-
-  const handleSave = async (event: React.FormEvent) => {
-    event.preventDefault()
-    setSaving(true); setError(''); setMessage('')
-    try {
-      const response = await fetch('/api/auth/account', { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ ...form, avatarUrl: avatarUrl || null }) })
-      const data = await response.json()
-      if (!response.ok) { setError(data.error || 'Não foi possível salvar os dados.'); return }
-      applyUser(data.user)
-      setEditing(false)
-      setMessage('Dados cadastrais atualizados com sucesso.')
-      router.refresh()
-    } catch { setError('Falha de comunicação com o servidor.') }
-    finally { setSaving(false) }
-  }
-
-  const handleDelete = async () => {
-    if (!window.confirm('Deseja excluir permanentemente sua conta e seus dados? Esta ação não pode ser desfeita.')) return
-    setSaving(true); setError('')
-    try {
-      const response = await fetch('/api/auth/account', { method: 'DELETE' })
-      const data = await response.json()
-      if (!response.ok) { setError(data.error || 'Não foi possível excluir a conta.'); return }
-      router.replace('/login')
-      router.refresh()
-    } catch { setError('Falha de comunicação com o servidor.') }
-    finally { setSaving(false) }
-  }
-
-  if (loading) return <div className="py-16 text-center text-sm text-slate-500">Carregando seu espaço...</div>
+  const [form, setForm] = useState<AccountForm>({ name: '', phone: '', city: 'São Luís', neighborhood: '', address: '', postalCode: '', companyName: '', fantasyName: '', cnpjCpf: '', storePhone: '', storeCity: '', storeNeighborhood: '', storeAddress: '', categories: '', vehicleBrands: '', serviceScopes: '', vehicleSizes: '', productTypes: '', itemConditions: '', contactEmail: '', instagram: '', facebook: '', website: '' })
+  const [loading, setLoading] = useState(true); const [editing, setEditing] = useState(false); const [saving, setSaving] = useState(false); const [message, setMessage] = useState(''); const [error, setError] = useState('')
+  const applyUser = (nextUser: AccountUser) => { const store = nextUser.storeProfile; setUser(nextUser); setAvatarUrl(nextUser.avatarUrl || ''); setForm({ name: nextUser.name || '', phone: nextUser.phone || '', city: nextUser.city || 'São Luís', neighborhood: nextUser.neighborhood || '', address: nextUser.address || '', postalCode: nextUser.postalCode || '', companyName: store?.companyName || '', fantasyName: store?.fantasyName || '', cnpjCpf: store?.cnpjCpf || '', storePhone: store?.phone || '', storeCity: store?.city || '', storeNeighborhood: store?.neighborhood || '', storeAddress: store?.address || '', categories: listToText(store?.categories), vehicleBrands: listToText(store?.vehicleBrands), serviceScopes: listToText(store?.serviceScopes), vehicleSizes: listToText(store?.vehicleSizes), productTypes: listToText(store?.productTypes), itemConditions: listToText(store?.itemConditions), contactEmail: store?.contactEmail || '', instagram: socialValue(store?.socialLinks, 'instagram'), facebook: socialValue(store?.socialLinks, 'facebook'), website: socialValue(store?.socialLinks, 'website') }) }
+  useEffect(() => { fetch('/api/auth/me', { cache: 'no-store' }).then(async (response) => { const data = await response.json(); if (!response.ok || !data.user) { router.replace('/login'); return } applyUser(data.user) }).catch(() => setError('Não foi possível carregar seus dados.')).finally(() => setLoading(false)) }, [router])
+  const set = (key: keyof AccountForm, value: string) => setForm((current) => ({ ...current, [key]: value }))
+  const startEditing = () => { setMessage(''); setError(''); setEditing(true) }
+  const cancelEditing = () => { if (user) applyUser(user); setMessage(''); setError(''); setEditing(false) }
+  const handleSave = async (event: React.FormEvent) => { event.preventDefault(); setSaving(true); setError(''); setMessage(''); try { const response = await fetch('/api/auth/account', { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ name: form.name, phone: form.phone, city: form.city, neighborhood: form.neighborhood, address: form.address, postalCode: form.postalCode, avatarUrl: avatarUrl || null, storeProfile: isCommercialRole(user?.role || '') ? { companyName: form.companyName, fantasyName: form.fantasyName, cnpjCpf: form.cnpjCpf, phone: form.storePhone, city: form.storeCity, neighborhood: form.storeNeighborhood, address: form.storeAddress, categories: textToJson(form.categories), vehicleBrands: textToJson(form.vehicleBrands), serviceScopes: textToJson(form.serviceScopes), vehicleSizes: textToJson(form.vehicleSizes), productTypes: textToJson(form.productTypes), itemConditions: textToJson(form.itemConditions), contactEmail: form.contactEmail, socialLinks: JSON.stringify({ instagram: form.instagram, facebook: form.facebook, website: form.website }) } : undefined }) }); const data = await response.json(); if (!response.ok) { setError(data.error || 'Não foi possível salvar os dados.'); return } applyUser(data.user); setEditing(false); setMessage('Todos os dados cadastrais foram atualizados com sucesso.'); router.refresh() } catch { setError('Falha de comunicação com o servidor.') } finally { setSaving(false) } }
+  const handleDelete = async () => { if (!window.confirm('Deseja excluir permanentemente sua conta e seus dados? Esta ação não pode ser desfeita.')) return; setSaving(true); try { const response = await fetch('/api/auth/account', { method: 'DELETE' }); if (response.ok) { router.replace('/login'); router.refresh() } else setError('Não foi possível excluir a conta.') } catch { setError('Falha de comunicação com o servidor.') } finally { setSaving(false) } }
+  if (loading) return <div className="py-16 text-center text-sm text-slate-500">Carregando seus dados...</div>
   if (!user) return null
-
-  const roleLabel = roleLabels[user.role] || user.role
-  const store = user.storeProfile
-
-  return (
-    <div className="mx-auto max-w-4xl space-y-6 py-6 pb-10">
-      <section className="overflow-hidden rounded-3xl border border-slate-200/80 bg-gradient-to-br from-white via-amber-50/45 to-orange-50/60 shadow-sm dark:border-slate-700/80 dark:from-slate-900 dark:via-slate-900 dark:to-amber-950/25">
-        <div className="flex flex-col gap-5 p-5 sm:flex-row sm:items-center sm:justify-between sm:p-8">
-          <div className="flex items-center gap-4 sm:gap-6">
-            {user.avatarUrl ? <img src={user.avatarUrl} alt={`Foto de perfil de ${user.name}`} className="h-24 w-24 shrink-0 rounded-3xl object-cover shadow-lg ring-4 ring-white/80 dark:ring-slate-800 sm:h-28 sm:w-28" /> : <InitialAvatar name={user.name} />}
-            <div className="min-w-0"><div className="mb-2 inline-flex items-center gap-1.5 rounded-full bg-emerald-500/10 px-3 py-1 text-[10px] font-black uppercase tracking-wide text-emerald-700 dark:text-emerald-300"><BadgeCheck className="h-3.5 w-3.5" /> Perfil ativo</div><h1 className="truncate text-2xl font-black text-slate-950 dark:text-white sm:text-3xl">{user.name}</h1><p className="mt-1 text-sm font-bold text-amber-700 dark:text-amber-300">{roleLabel}</p><p className="mt-1 max-w-xl text-xs leading-relaxed text-slate-600 dark:text-slate-300">{roleDescriptions[user.role] || 'Informações e preferências do seu perfil no PeçaAki.'}</p></div>
-          </div>
-          {!editing && <button type="button" onClick={startEditing} className="inline-flex items-center justify-center gap-2 rounded-xl bg-amber-500 px-4 py-3 text-sm font-black text-slate-950 shadow-md shadow-amber-500/20 transition hover:bg-amber-400"><Edit3 className="h-4 w-4" /> Editar dados</button>}
-        </div>
-      </section>
-
-      {message && <div className="flex items-center gap-2 rounded-xl border border-emerald-200 bg-emerald-50 p-3 text-xs text-emerald-700 dark:border-emerald-900/50 dark:bg-emerald-950/30 dark:text-emerald-300"><CheckCircle2 className="h-4 w-4" />{message}</div>}
-      {error && <div className="flex items-center gap-2 rounded-xl border border-rose-200 bg-rose-50 p-3 text-xs text-rose-700 dark:border-rose-900/50 dark:bg-rose-950/30 dark:text-rose-300"><AlertCircle className="h-4 w-4" />{error}</div>}
-
-      {!editing ? <>
-        <section className="rounded-3xl border border-slate-200/80 bg-slate-50/65 p-5 shadow-sm dark:border-slate-700/80 dark:bg-slate-900/75 sm:p-6"><div className="mb-4 flex items-center gap-2"><UserRound className="h-5 w-5 text-amber-500" /><h2 className="text-lg font-black text-slate-900 dark:text-white">Informações pessoais</h2></div><div className="grid gap-3 sm:grid-cols-2"><DataItem icon={Mail} label="E-mail" value={user.email} /><DataItem icon={Phone} label="Telefone / WhatsApp" value={user.phone} /><DataItem icon={MapPin} label="Município" value={user.city} /><DataItem icon={MapPin} label="Bairro" value={user.neighborhood} /><DataItem icon={MapPin} label="Endereço completo" value={user.address} /><DataItem icon={MapPin} label="CEP" value={user.postalCode} /></div></section>
-        {store && <section className="rounded-3xl border border-sky-200/80 bg-sky-50/55 p-5 shadow-sm dark:border-sky-900/70 dark:bg-sky-950/20 sm:p-6"><div className="mb-4 flex items-center gap-2"><Building2 className="h-5 w-5 text-sky-600 dark:text-sky-300" /><h2 className="text-lg font-black text-slate-900 dark:text-white">Informações comerciais</h2>{store.isVerified && <span className="ml-auto inline-flex items-center gap-1 text-[10px] font-black uppercase text-emerald-600 dark:text-emerald-300"><ShieldCheck className="h-4 w-4" /> Verificado</span>}</div><div className="grid gap-3 sm:grid-cols-2"><DataItem icon={Building2} label="Nome fantasia" value={store.fantasyName} /><DataItem icon={Building2} label="Razão social" value={store.companyName} /><DataItem icon={ShieldCheck} label="CNPJ / CPF" value={store.cnpjCpf} /><DataItem icon={MapPin} label="Endereço" value={store.address} /><DataItem icon={Phone} label="Telefone comercial" value={store.phone} /><DataItem icon={Building2} label="Categorias" value={formatList(store.categories)} /><DataItem icon={Building2} label="Marcas atendidas" value={formatList(store.vehicleBrands)} /></div></section>}
-        <section className="rounded-3xl border border-rose-200 bg-rose-50/60 p-5 dark:border-rose-900/50 dark:bg-rose-950/20 sm:p-6"><h2 className="text-sm font-black text-rose-700 dark:text-rose-300">Excluir conta</h2><p className="mt-1 text-xs leading-relaxed text-rose-700/80 dark:text-rose-300/80">A exclusão remove sua conta e os registros vinculados conforme as relações do sistema. Esta ação é permanente.</p><button type="button" onClick={handleDelete} disabled={saving} className="mt-4 inline-flex items-center gap-2 rounded-xl border border-rose-300 bg-white px-4 py-2.5 text-xs font-bold text-rose-700 hover:bg-rose-100 disabled:opacity-60 dark:border-rose-800 dark:bg-slate-950 dark:text-rose-300"><Trash2 className="h-4 w-4" /> Excluir minha conta</button></section>
-      </> : <section className="rounded-3xl border border-amber-200/80 bg-white p-5 shadow-sm dark:border-amber-800/70 dark:bg-slate-900 sm:p-8"><div className="mb-5 flex items-center justify-between border-b border-slate-100 pb-4 dark:border-slate-800"><div><h2 className="text-xl font-black text-slate-900 dark:text-white">Editar dados cadastrais</h2><p className="mt-1 text-xs text-slate-500 dark:text-slate-400">Atualize seus dados e salve quando concluir.</p></div><button type="button" onClick={cancelEditing} className="inline-flex items-center gap-1.5 rounded-xl border border-slate-300 px-3 py-2 text-xs font-bold text-slate-600 hover:bg-slate-50 dark:border-slate-600 dark:text-slate-200 dark:hover:bg-slate-800"><X className="h-4 w-4" /> Cancelar</button></div><form onSubmit={handleSave} className="space-y-4"><div><label className="mb-1 block text-xs font-bold text-slate-700 dark:text-slate-300">Nome e sobrenome</label><input required value={form.name} onChange={(event) => updateField('name', event.target.value)} className="w-full rounded-xl border border-slate-300 bg-slate-50 px-3 py-2.5 text-sm outline-none focus:border-amber-500 dark:border-slate-700 dark:bg-slate-950 dark:text-white" /></div><div><label className="mb-1 block text-xs font-bold text-slate-700 dark:text-slate-300">E-mail</label><input disabled value={user.email} className="w-full cursor-not-allowed rounded-xl border border-slate-200 bg-slate-100 px-3 py-2.5 text-sm text-slate-500 dark:border-slate-800 dark:bg-slate-950" /><p className="mt-1 text-[11px] text-slate-500">O e-mail é o identificador da conta e não pode ser alterado aqui.</p></div><ProfileImageEditor value={avatarUrl} onChange={setAvatarUrl} /><div className="grid gap-4 sm:grid-cols-2"><div><label className="mb-1 block text-xs font-bold text-slate-700 dark:text-slate-300">Telefone / WhatsApp</label><input required value={form.phone} onChange={(event) => updateField('phone', event.target.value)} className="w-full rounded-xl border border-slate-300 bg-slate-50 px-3 py-2.5 text-sm outline-none focus:border-amber-500 dark:border-slate-700 dark:bg-slate-950 dark:text-white" /></div><div><label className="mb-1 block text-xs font-bold text-slate-700 dark:text-slate-300">Município</label><select value={form.city} onChange={(event) => updateField('city', event.target.value)} className="w-full rounded-xl border border-slate-300 bg-slate-50 px-3 py-2.5 text-sm outline-none focus:border-amber-500 dark:border-slate-700 dark:bg-slate-950 dark:text-white"><option>São Luís</option><option>Paço do Lumiar</option><option>São José de Ribamar</option><option>Raposa</option></select></div></div><div className="grid gap-4 sm:grid-cols-2"><div><label className="mb-1 block text-xs font-bold text-slate-700 dark:text-slate-300">Bairro</label><input required value={form.neighborhood} onChange={(event) => updateField('neighborhood', event.target.value)} className="w-full rounded-xl border border-slate-300 bg-slate-50 px-3 py-2.5 text-sm outline-none focus:border-amber-500 dark:border-slate-700 dark:bg-slate-950 dark:text-white" /></div><div><label className="mb-1 block text-xs font-bold text-slate-700 dark:text-slate-300">CEP</label><input value={form.postalCode} onChange={(event) => updateField('postalCode', event.target.value)} className="w-full rounded-xl border border-slate-300 bg-slate-50 px-3 py-2.5 text-sm outline-none focus:border-amber-500 dark:border-slate-700 dark:bg-slate-950 dark:text-white" /></div></div><div><label className="mb-1 block text-xs font-bold text-slate-700 dark:text-slate-300">Endereço completo</label><input required value={form.address} onChange={(event) => updateField('address', event.target.value)} className="w-full rounded-xl border border-slate-300 bg-slate-50 px-3 py-2.5 text-sm outline-none focus:border-amber-500 dark:border-slate-700 dark:bg-slate-950 dark:text-white" /></div><div className="flex flex-col justify-between gap-3 border-t border-slate-100 pt-5 dark:border-slate-800 sm:flex-row sm:items-center"><span className="inline-flex items-center gap-1.5 text-xs text-slate-500"><ShieldCheck className="h-4 w-4 text-emerald-500" /> Perfil: {roleLabel}</span><button disabled={saving} className="inline-flex items-center justify-center gap-2 rounded-xl bg-amber-500 px-5 py-2.5 text-sm font-bold text-slate-950 hover:bg-amber-400 disabled:opacity-60">{saving ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />} Salvar alterações</button></div></form></section>}
-    </div>
-  )
+  const store = user.storeProfile; const roleLabel = roleLabels[user.role] || user.role; const commercial = isCommercialRole(user.role); const serviceLabel = user.role === 'GUINCHO' ? 'Serviços e portes rebocados' : user.role === 'OFICINA' ? 'Serviços e portes atendidos' : 'Especialidades comerciais'
+  return <div className="mx-auto max-w-5xl space-y-6 py-6 pb-10"><section className="overflow-hidden rounded-3xl border border-slate-200/80 bg-gradient-to-br from-white via-amber-50/45 to-orange-50/60 shadow-sm dark:border-slate-700/80 dark:from-slate-900 dark:via-slate-900 dark:to-amber-950/25"><div className="flex flex-col gap-5 p-5 sm:flex-row sm:items-center sm:justify-between sm:p-8"><div className="flex items-center gap-4 sm:gap-6">{user.avatarUrl ? <img src={user.avatarUrl} alt={`Foto de perfil de ${user.name}`} className="h-24 w-24 shrink-0 rounded-3xl object-cover shadow-lg ring-4 ring-white/80 dark:ring-slate-800 sm:h-28 sm:w-28" /> : <InitialAvatar name={user.name} />}<div className="min-w-0"><div className="mb-2 inline-flex items-center gap-1.5 rounded-full bg-emerald-500/10 px-3 py-1 text-[10px] font-black uppercase tracking-wide text-emerald-700 dark:text-emerald-300"><BadgeCheck className="h-3.5 w-3.5" /> Perfil ativo</div><h1 className="truncate text-2xl font-black text-slate-950 dark:text-white sm:text-3xl">{user.name}</h1><p className="mt-1 text-sm font-bold text-amber-700 dark:text-amber-300">{roleLabel}</p><p className="mt-1 max-w-xl text-xs leading-relaxed text-slate-600 dark:text-slate-300">{roleDescriptions[user.role] || 'Informações do seu perfil no PeçaAki.'}</p></div></div>{!editing && <button type="button" onClick={startEditing} className="inline-flex items-center justify-center gap-2 rounded-xl bg-amber-500 px-4 py-3 text-sm font-black text-slate-950 shadow-md shadow-amber-500/20 transition hover:bg-amber-400"><Edit3 className="h-4 w-4" /> Editar todos os dados</button>}</div></section>{message && <div className="flex items-center gap-2 rounded-xl border border-emerald-200 bg-emerald-50 p-3 text-xs text-emerald-700 dark:border-emerald-900/50 dark:bg-emerald-950/30 dark:text-emerald-300"><CheckCircle2 className="h-4 w-4" />{message}</div>}{error && <div className="flex items-center gap-2 rounded-xl border border-rose-200 bg-rose-50 p-3 text-xs text-rose-700 dark:border-rose-900/50 dark:bg-rose-950/30 dark:text-rose-300"><AlertCircle className="h-4 w-4" />{error}</div>}{!editing ? <><section className="rounded-3xl border border-slate-200/80 bg-slate-50/65 p-5 shadow-sm dark:border-slate-700/80 dark:bg-slate-900/75 sm:p-6"><div className="mb-4 flex items-center gap-2"><UserRound className="h-5 w-5 text-amber-500" /><h2 className="text-lg font-black text-slate-900 dark:text-white">Dados pessoais</h2></div><div className="grid gap-3 sm:grid-cols-2"><DataItem icon={Mail} label="E-mail" value={user.email} /><DataItem icon={Phone} label="Telefone / WhatsApp" value={user.phone} /><DataItem icon={MapPin} label="Município" value={user.city} /><DataItem icon={MapPin} label="Bairro" value={user.neighborhood} /><DataItem icon={MapPin} label="Endereço completo" value={user.address} /><DataItem icon={MapPin} label="CEP" value={user.postalCode} /></div></section>{store && <section className="rounded-3xl border border-sky-200/80 bg-sky-50/55 p-5 shadow-sm dark:border-sky-900/70 dark:bg-sky-950/20 sm:p-6"><div className="mb-4 flex items-center gap-2"><Building2 className="h-5 w-5 text-sky-600 dark:text-sky-300" /><h2 className="text-lg font-black text-slate-900 dark:text-white">Dados de {user.role === 'GUINCHO' ? 'guincho' : user.role === 'OFICINA' ? 'oficina' : 'vendedor'}</h2>{store.isVerified && <span className="ml-auto inline-flex items-center gap-1 text-[10px] font-black uppercase text-emerald-600 dark:text-emerald-300"><ShieldCheck className="h-4 w-4" /> Verificado</span>}</div><div className="grid gap-3 sm:grid-cols-2"><DataItem icon={Building2} label="Razão social" value={store.companyName} /><DataItem icon={Building2} label="Nome fantasia" value={store.fantasyName} /><DataItem icon={ShieldCheck} label="CNPJ / CPF" value={store.cnpjCpf} /><DataItem icon={MapPin} label="Endereço comercial" value={store.address} /><DataItem icon={MapPin} label="Bairro / município" value={`${store.neighborhood || 'Não informado'} · ${store.city || 'Não informado'}`} /><DataItem icon={Phone} label="Telefone comercial" value={store.phone} /><DataItem icon={Mail} label="E-mail comercial" value={store.contactEmail} /><DataItem icon={Building2} label="Categorias" value={listToText(store.categories)} /><DataItem icon={Building2} label="Marcas / tipos de veículo" value={listToText(store.vehicleBrands)} /><DataItem icon={ShieldCheck} label={serviceLabel} value={`${listToText(store.serviceScopes)} · ${listToText(store.vehicleSizes)}`} /><DataItem icon={Building2} label="Produtos comercializados" value={listToText(store.productTypes)} /><DataItem icon={ShieldCheck} label="Condições" value={listToText(store.itemConditions)} /><DataItem icon={Mail} label="Redes sociais" value={`${socialValue(store.socialLinks, 'instagram')} ${socialValue(store.socialLinks, 'facebook')} ${socialValue(store.socialLinks, 'website')}`.trim()} /></div></section>}<section className="rounded-3xl border border-rose-200 bg-rose-50/60 p-5 dark:border-rose-900/50 dark:bg-rose-950/20 sm:p-6"><h2 className="text-sm font-black text-rose-700 dark:text-rose-300">Excluir conta</h2><p className="mt-1 text-xs leading-relaxed text-rose-700/80 dark:text-rose-300/80">A exclusão remove sua conta e os registros vinculados.</p><button type="button" onClick={handleDelete} disabled={saving} className="mt-4 inline-flex items-center gap-2 rounded-xl border border-rose-300 bg-white px-4 py-2.5 text-xs font-bold text-rose-700 hover:bg-rose-100 disabled:opacity-60 dark:border-rose-800 dark:bg-slate-950 dark:text-rose-300"><Trash2 className="h-4 w-4" /> Excluir minha conta</button></section></> : <section className="rounded-3xl border border-amber-200/80 bg-white p-5 shadow-sm dark:border-amber-800/70 dark:bg-slate-900 sm:p-8"><div className="mb-5 flex items-center justify-between border-b border-slate-100 pb-4 dark:border-slate-800"><div><h2 className="text-xl font-black text-slate-900 dark:text-white">Editar todos os dados</h2><p className="mt-1 text-xs text-slate-500 dark:text-slate-400">Atualize informações pessoais, imagem e dados do seu cadastro específico.</p></div><button type="button" onClick={cancelEditing} className="inline-flex items-center gap-1.5 rounded-xl border border-slate-300 px-3 py-2 text-xs font-bold text-slate-600 hover:bg-slate-50 dark:border-slate-600 dark:text-slate-200 dark:hover:bg-slate-800"><X className="h-4 w-4" /> Cancelar</button></div><form onSubmit={handleSave} className="space-y-5"><div className="grid gap-4 sm:grid-cols-2"><Field label="Nome completo / responsável" value={form.name} onChange={(value) => set('name', value)} required /><Field label="E-mail" value={user.email} onChange={() => {}} disabled /><Field label="Telefone / WhatsApp" value={form.phone} onChange={(value) => set('phone', value)} required /><Field label="Município" value={form.city} onChange={(value) => set('city', value)} required /><Field label="Bairro" value={form.neighborhood} onChange={(value) => set('neighborhood', value)} required /><Field label="CEP" value={form.postalCode} onChange={(value) => set('postalCode', value)} /><div className="sm:col-span-2"><Field label="Endereço completo" value={form.address} onChange={(value) => set('address', value)} required /></div></div><ProfileImageEditor value={avatarUrl} onChange={setAvatarUrl} />{commercial && <div className="space-y-4 rounded-2xl border border-sky-200 bg-sky-50/60 p-4 dark:border-sky-900/60 dark:bg-sky-950/20"><h3 className="flex items-center gap-2 text-sm font-black text-sky-800 dark:text-sky-200"><Building2 className="h-4 w-4" /> Dados específicos do cadastro</h3><div className="grid gap-4 sm:grid-cols-2"><Field label="Razão Social" value={form.companyName} onChange={(value) => set('companyName', value)} required /><Field label="Nome Fantasia" value={form.fantasyName} onChange={(value) => set('fantasyName', value)} required /><Field label="CNPJ ou CPF" value={form.cnpjCpf} onChange={(value) => set('cnpjCpf', value)} required /><Field label="Telefone comercial" value={form.storePhone} onChange={(value) => set('storePhone', value)} required /><Field label="E-mail comercial" value={form.contactEmail} onChange={(value) => set('contactEmail', value)} type="email" /><Field label="Município comercial" value={form.storeCity} onChange={(value) => set('storeCity', value)} /><Field label="Bairro comercial" value={form.storeNeighborhood} onChange={(value) => set('storeNeighborhood', value)} /><div className="sm:col-span-2"><Field label="Endereço comercial" value={form.storeAddress} onChange={(value) => set('storeAddress', value)} /></div><Field label="Categorias (separadas por vírgula)" value={form.categories} onChange={(value) => set('categories', value)} /><Field label="Marcas / tipos de veículo (separados por vírgula)" value={form.vehicleBrands} onChange={(value) => set('vehicleBrands', value)} /><Field label="Escopo: carro, moto ou ambos" value={form.serviceScopes} onChange={(value) => set('serviceScopes', value)} /><Field label="Porte atendido / rebocado" value={form.vehicleSizes} onChange={(value) => set('vehicleSizes', value)} /><Field label="Produtos comercializados" value={form.productTypes} onChange={(value) => set('productTypes', value)} /><Field label="Condição dos itens / serviço" value={form.itemConditions} onChange={(value) => set('itemConditions', value)} /><Field label="Instagram" value={form.instagram} onChange={(value) => set('instagram', value)} /><Field label="Facebook" value={form.facebook} onChange={(value) => set('facebook', value)} /><Field label="Site / outra rede" value={form.website} onChange={(value) => set('website', value)} /></div></div>}<div className="flex justify-end border-t border-slate-100 pt-5 dark:border-slate-800"><button disabled={saving} className="inline-flex items-center justify-center gap-2 rounded-xl bg-amber-500 px-5 py-2.5 text-sm font-bold text-slate-950 hover:bg-amber-400 disabled:opacity-60">{saving ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />} Salvar alterações</button></div></form></section>}</div>
 }

@@ -40,7 +40,12 @@ export default function LoginPage() {
         return
       }
 
-      router.push('/conta')
+      const destination = data.user?.role === 'LOJISTA' || data.user?.role === 'VENDEDOR'
+        ? '/lojista/radar'
+        : data.user?.role === 'GUINCHO'
+          ? '/guincho/radar'
+          : '/'
+      router.push(destination)
       router.refresh()
     } catch (err) {
       setError('Falha de conexão com o servidor')

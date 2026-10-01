@@ -14,13 +14,33 @@ export async function PATCH(req: Request) {
     const address = String(body.address || '').trim()
     const postalCode = String(body.postalCode || '').trim()
     const avatarUrl = body.avatarUrl === null || body.avatarUrl === undefined ? null : String(body.avatarUrl)
+    const storeProfile = body.storeProfile && typeof body.storeProfile === 'object' ? {
+      companyName: String(body.storeProfile.companyName || '').trim(),
+      fantasyName: String(body.storeProfile.fantasyName || '').trim(),
+      cnpjCpf: String(body.storeProfile.cnpjCpf || '').trim(),
+      phone: String(body.storeProfile.phone || '').trim(),
+      city: String(body.storeProfile.city || '').trim(),
+      neighborhood: String(body.storeProfile.neighborhood || '').trim(),
+      address: String(body.storeProfile.address || '').trim(),
+      categories: String(body.storeProfile.categories || '[]'),
+      vehicleBrands: String(body.storeProfile.vehicleBrands || '[]'),
+      serviceScopes: String(body.storeProfile.serviceScopes || '[]'),
+      vehicleSizes: String(body.storeProfile.vehicleSizes || '[]'),
+      productTypes: String(body.storeProfile.productTypes || '[]'),
+      itemConditions: String(body.storeProfile.itemConditions || '[]'),
+      contactEmail: String(body.storeProfile.contactEmail || '').trim(),
+      socialLinks: String(body.storeProfile.socialLinks || '{}'),
+    } : undefined
     if (!name || !phone || !city || !neighborhood) {
       return NextResponse.json({ error: 'Nome, telefone, município e bairro são obrigatórios' }, { status: 400 })
     }
     if (avatarUrl && (!avatarUrl.startsWith('data:image/') || avatarUrl.length > 2_000_000)) {
       return NextResponse.json({ error: 'A imagem do perfil é inválida ou excede o limite permitido.' }, { status: 400 })
     }
-    const updated = await db.updateUser(user.id, { name, phone, city, neighborhood, address, postalCode, avatarUrl })
+    if (storeProfile && (!storeProfile.companyName || !storeProfile.fantasyName || !storeProfile.cnpjCpf || !storeProfile.phone)) {
+      return NextResponse.json({ error: 'Preencha os dados comerciais obrigatórios do perfil.' }, { status: 400 })
+    }
+    const updated = await db.updateUser(user.id, { name, phone, city, neighborhood, address, postalCode, avatarUrl, storeProfile })
     if (!updated) return NextResponse.json({ error: 'Usuário não encontrado' }, { status: 404 })
     const { passwordHash, ...safeUser } = updated
     return NextResponse.json({ success: true, user: safeUser })

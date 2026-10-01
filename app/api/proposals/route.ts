@@ -25,8 +25,8 @@ export async function POST(req: Request) {
       }
     }
 
-    if (user.role !== 'LOJISTA' || !user.storeProfile) {
-      return NextResponse.json({ error: 'Apenas lojistas cadastrados podem enviar orçamentos' }, { status: 403 })
+    if (!['LOJISTA', 'VENDEDOR', 'GUINCHO'].includes(user.role) || !user.storeProfile) {
+      return NextResponse.json({ error: 'Apenas vendedores e guinchos cadastrados podem enviar orçamentos' }, { status: 403 })
     }
 
     const { quoteRequestId, availability, condition, cashPrice, installmentPrice, deliveryFee, deliveryTime, notes, photoUrl } = body

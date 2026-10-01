@@ -7,6 +7,6 @@ export const dynamic = 'force-dynamic'
 export async function GET() {
   const user = await getCurrentUser()
   if (!user) return NextResponse.json({ error: 'Não autorizado' }, { status: 401 })
-  const dashboard = await db.getUserDashboard(user.id)
+    const dashboard = await db.getUserDashboard(user.id, user.role)
   return NextResponse.json({ dashboard })
 }
