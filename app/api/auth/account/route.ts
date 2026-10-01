@@ -11,6 +11,8 @@ export async function PATCH(req: Request) {
     const phone = String(body.phone || '').trim()
     const city = String(body.city || '').trim()
     const neighborhood = String(body.neighborhood || '').trim()
+    const address = String(body.address || '').trim()
+    const postalCode = String(body.postalCode || '').trim()
     const avatarUrl = body.avatarUrl === null || body.avatarUrl === undefined ? null : String(body.avatarUrl)
     if (!name || !phone || !city || !neighborhood) {
       return NextResponse.json({ error: 'Nome, telefone, município e bairro são obrigatórios' }, { status: 400 })
@@ -18,7 +20,7 @@ export async function PATCH(req: Request) {
     if (avatarUrl && (!avatarUrl.startsWith('data:image/') || avatarUrl.length > 2_000_000)) {
       return NextResponse.json({ error: 'A imagem do perfil é inválida ou excede o limite permitido.' }, { status: 400 })
     }
-    const updated = await db.updateUser(user.id, { name, phone, city, neighborhood, avatarUrl })
+    const updated = await db.updateUser(user.id, { name, phone, city, neighborhood, address, postalCode, avatarUrl })
     if (!updated) return NextResponse.json({ error: 'Usuário não encontrado' }, { status: 404 })
     const { passwordHash, ...safeUser } = updated
     return NextResponse.json({ success: true, user: safeUser })

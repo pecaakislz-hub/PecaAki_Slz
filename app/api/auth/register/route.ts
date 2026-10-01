@@ -6,7 +6,7 @@ import { getSupabaseAdmin, ensureSupabaseUser } from '@/lib/supabase-admin'
 export async function POST(req: Request) {
   try {
     const body = await req.json()
-    const { name, email, password, phone, role, city, neighborhood, storeData, avatarUrl } = body
+    const { name, email, password, phone, role, city, neighborhood, address, postalCode, storeData, vehicleData, avatarUrl } = body
     if (!name || !email || !password || !phone) {
       return NextResponse.json({ error: 'Preencha todos os campos obrigatórios' }, { status: 400 })
     }
@@ -17,17 +17,21 @@ export async function POST(req: Request) {
     if (process.env.NODE_ENV === 'production' && !getSupabaseAdmin()) {
       return NextResponse.json({ error: 'O cadastro está temporariamente indisponível enquanto o Supabase Auth não está configurado.' }, { status: 503 })
     }
+    const normalizedRole = role === 'VENDEDOR' ? 'LOJISTA' : (['COMPRADOR', 'OFICINA', 'GUINCHO', 'LOJISTA'].includes(role) ? role : 'COMPRADOR')
     const passwordHash = await bcrypt.hash(password, 10)
     const user = await db.createUser({
       name,
       email,
       passwordHash,
       phone,
-      role: role || 'COMPRADOR',
+      role: normalizedRole,
       city: city || 'São Luís',
       neighborhood: neighborhood || 'Centro',
+      address: address || '',
+      postalCode: postalCode || '',
       avatarUrl: typeof avatarUrl === 'string' ? avatarUrl : null,
       storeProfile: storeData,
+      vehicleData: normalizedRole === 'COMPRADOR' && vehicleData?.brand && vehicleData?.model && vehicleData?.year ? vehicleData : undefined,
     })
     try {
       await ensureSupabaseUser(email, password, { app_user_id: user.id, role: user.role })

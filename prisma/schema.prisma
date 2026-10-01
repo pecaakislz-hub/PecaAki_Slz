@@ -18,6 +18,8 @@ model User {
   role         String   @default("COMPRADOR") // COMPRADOR, LOJISTA, ADMIN
   city         String   @default("São Luís")
   neighborhood String
+  address      String   @default("")
+  postalCode   String   @default("")
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
 
@@ -42,6 +44,12 @@ model StoreProfile {
   address       String
   categories    String // Armazenado como JSON array string
   vehicleBrands String // Armazenado como JSON array string
+  serviceScopes  String @default("[]") // CARRO, MOTO
+  vehicleSizes   String @default("[]") // PEQUENO, MEDIO, GRANDE
+  productTypes   String @default("[]") // PECAS, ACESSORIOS, BATERIAS, OLEOS_FILTROS, PNEUS
+  itemConditions String @default("[]") // NOVAS, SEMINOVAS, SUCATA
+  contactEmail   String @default("")
+  socialLinks    String @default("{}") // JSON com redes sociais
   isVerified    Boolean  @default(true)
   createdAt     DateTime @default(now())
 

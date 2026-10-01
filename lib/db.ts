@@ -14,6 +14,12 @@ export interface StoreProfileData {
   address: string
   categories: string
   vehicleBrands: string
+  serviceScopes?: string
+  vehicleSizes?: string
+  productTypes?: string
+  itemConditions?: string
+  contactEmail?: string
+  socialLinks?: string
   isVerified: boolean
   createdAt: Date
 }
@@ -28,6 +34,8 @@ export interface UserData {
   role: string // 'COMPRADOR', 'LOJISTA', 'ADMIN'
   city: string
   neighborhood: string
+  address?: string
+  postalCode?: string
   createdAt: Date
   storeProfile?: StoreProfileData | null
 }
@@ -376,6 +384,8 @@ export const db = {
             ...(data.phone !== undefined ? { phone: data.phone } : {}),
             ...(data.city !== undefined ? { city: data.city } : {}),
             ...(data.neighborhood !== undefined ? { neighborhood: data.neighborhood } : {}),
+            ...(data.address !== undefined ? { address: data.address } : {}),
+            ...(data.postalCode !== undefined ? { postalCode: data.postalCode } : {}),
             ...(data.avatarUrl !== undefined ? { avatarUrl: data.avatarUrl } : {}),
           },
           include: { storeProfile: true },
@@ -416,7 +426,9 @@ export const db = {
             role: data.role || 'COMPRADOR',
             city: data.city || 'São Luís',
             neighborhood: data.neighborhood || 'Centro',
-            ...((data.role === 'LOJISTA' || data.role === 'VENDEDOR') && data.storeProfile ? {
+            address: data.address || '',
+            postalCode: data.postalCode || '',
+            ...(['LOJISTA', 'VENDEDOR', 'OFICINA', 'GUINCHO'].includes(data.role) && data.storeProfile ? {
               storeProfile: {
                 create: {
                   companyName: data.storeProfile.companyName || data.name,
@@ -428,8 +440,26 @@ export const db = {
                   address: data.storeProfile.address || '',
                   categories: data.storeProfile.categories || JSON.stringify(['Auto', 'Moto']),
                   vehicleBrands: data.storeProfile.vehicleBrands || JSON.stringify(['Chevrolet', 'Fiat', 'Honda']),
+                  serviceScopes: data.storeProfile.serviceScopes || JSON.stringify([]),
+                  vehicleSizes: data.storeProfile.vehicleSizes || JSON.stringify([]),
+                  productTypes: data.storeProfile.productTypes || JSON.stringify([]),
+                  itemConditions: data.storeProfile.itemConditions || JSON.stringify([]),
+                  contactEmail: data.storeProfile.contactEmail || data.email,
+                  socialLinks: data.storeProfile.socialLinks || JSON.stringify({}),
                   isVerified: true
-                }
+                },
+              },
+            } : {}),
+            ...(data.vehicleData ? {
+              vehicles: {
+                create: {
+                  type: data.vehicleData.type || 'CARRO',
+                  brand: data.vehicleData.brand,
+                  model: data.vehicleData.model,
+                  year: String(data.vehicleData.year),
+                  engine: data.vehicleData.engine || '',
+                  plate: data.vehicleData.plate || null,
+                },
               }
             } : {})
           },
@@ -451,10 +481,12 @@ export const db = {
       role: data.role || 'COMPRADOR',
       city: data.city || 'São Luís',
       neighborhood: data.neighborhood || 'Centro',
+      address: data.address || '',
+      postalCode: data.postalCode || '',
       createdAt: new Date()
     }
 
-    if ((data.role === 'LOJISTA' || data.role === 'VENDEDOR') && data.storeProfile) {
+    if (['LOJISTA', 'VENDEDOR', 'OFICINA', 'GUINCHO'].includes(data.role) && data.storeProfile) {
       const newStore: StoreProfileData = {
         id: `store-${Date.now()}`,
         userId: newUser.id,
@@ -467,11 +499,31 @@ export const db = {
         address: data.storeProfile.address || '',
         categories: data.storeProfile.categories || JSON.stringify(['Auto', 'Moto']),
         vehicleBrands: data.storeProfile.vehicleBrands || JSON.stringify(['Chevrolet', 'Fiat', 'Honda']),
+        serviceScopes: data.storeProfile.serviceScopes || JSON.stringify([]),
+        vehicleSizes: data.storeProfile.vehicleSizes || JSON.stringify([]),
+        productTypes: data.storeProfile.productTypes || JSON.stringify([]),
+        itemConditions: data.storeProfile.itemConditions || JSON.stringify([]),
+        contactEmail: data.storeProfile.contactEmail || data.email,
+        socialLinks: data.storeProfile.socialLinks || JSON.stringify({}),
         isVerified: true,
         createdAt: new Date()
       }
       newUser.storeProfile = newStore
       storesMemory.push(newStore)
+    }
+
+    if (data.vehicleData) {
+      vehiclesMemory.unshift({
+        id: `veh-${Date.now()}`,
+        userId: newUser.id,
+        type: data.vehicleData.type || 'CARRO',
+        brand: data.vehicleData.brand,
+        model: data.vehicleData.model,
+        year: String(data.vehicleData.year),
+        engine: data.vehicleData.engine || '',
+        plate: data.vehicleData.plate || null,
+        createdAt: new Date()
+      })
     }
 
     usersMemory.push(newUser)
