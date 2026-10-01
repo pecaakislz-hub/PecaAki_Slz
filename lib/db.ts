@@ -623,8 +623,9 @@ export const db = {
         const whereClause: any = {}
         if (filter?.userId) whereClause.userId = filter.userId
         if (filter?.category && filter.category !== 'Todas') whereClause.category = filter.category
+        if (filter?.scope === 'radar') whereClause.status = { not: 'CLOSED' }
 
-        return await prisma.quoteRequest.findMany({
+        const quotes = await prisma.quoteRequest.findMany({
           where: whereClause,
           include: {
             vehicle: true,
@@ -633,6 +634,7 @@ export const db = {
           },
           orderBy: { createdAt: 'desc' }
         })
+        return quotes.map((quote) => ({ ...quote, competitorCount: new Set(quote.proposals.map((proposal) => proposal.storeProfileId)).size }))
       } catch (e) {
         console.warn('Prisma query error, fallback to memory:', e)
       }
@@ -645,7 +647,8 @@ export const db = {
     if (filter?.category && filter.category !== 'Todas') {
       result = result.filter((q) => q.category === filter.category)
     }
-    return result
+    if (filter?.scope === 'radar') result = result.filter((q) => q.status !== 'CLOSED')
+    return result.map((quote) => ({ ...quote, competitorCount: new Set((quote.proposals || []).map((proposal) => proposal.storeProfileId)).size }))
   },
 
   findQuoteById: async (id: string) => {
@@ -718,6 +721,30 @@ export const db = {
 
     quotesMemory.unshift(newQuote)
     return newQuote
+  },
+
+  deleteQuote: async (quoteId: string, userId: string) => {
+    if (isPrismaConfigured()) {
+      try {
+        const quote = await prisma.quoteRequest.findUnique({ where: { id: quoteId }, select: { userId: true, status: true } })
+        if (!quote || quote.userId !== userId) throw new Error('NOT_ALLOWED')
+        if (['ACCEPTED', 'CLOSED'].includes(quote.status)) throw new Error('QUOTE_CLOSED')
+        await prisma.quoteRequest.delete({ where: { id: quoteId } })
+        return { success: true }
+      } catch (e: any) {
+        if (e?.message === 'NOT_ALLOWED' || e?.message === 'QUOTE_CLOSED') throw e
+        console.warn('Prisma delete quote error, fallback to memory:', e)
+      }
+    }
+    const quote = quotesMemory.find((item) => item.id === quoteId)
+    if (!quote || quote.userId !== userId) throw new Error('NOT_ALLOWED')
+    if (['ACCEPTED', 'CLOSED'].includes(quote.status)) throw new Error('QUOTE_CLOSED')
+    const quoteIndex = quotesMemory.findIndex((item) => item.id === quoteId)
+    if (quoteIndex >= 0) quotesMemory.splice(quoteIndex, 1)
+    for (let index = proposalsMemory.length - 1; index >= 0; index -= 1) {
+      if (proposalsMemory[index].quoteRequestId === quoteId) proposalsMemory.splice(index, 1)
+    }
+    return { success: true }
   },
 
   // Propostas
@@ -796,19 +823,24 @@ export const db = {
 
   acceptProposal: async (proposalId: string, buyerId: string) => {
     if (isPrismaConfigured()) {
-      return prisma.$transaction(async (tx) => {
+      try {
+      return await prisma.$transaction(async (tx) => {
         const proposal = await tx.proposal.findUnique({ where: { id: proposalId }, include: { quoteRequest: true, storeProfile: { include: { user: { select: { role: true } } } } } })
         if (!proposal || proposal.quoteRequest.userId !== buyerId) throw new Error('NOT_ALLOWED')
         const existing = await tx.purchase.findUnique({ where: { quoteRequestId: proposal.quoteRequestId } })
         if (existing) return { proposal, purchase: existing }
         await tx.proposal.updateMany({ where: { quoteRequestId: proposal.quoteRequestId }, data: { status: 'REJECTED' } })
         const updatedProp = await tx.proposal.update({ where: { id: proposalId }, data: { status: 'ACCEPTED' } })
-        await tx.quoteRequest.update({ where: { id: proposal.quoteRequestId }, data: { status: 'ACCEPTED', updatedAt: new Date() } })
+        await tx.quoteRequest.update({ where: { id: proposal.quoteRequestId }, data: { status: 'CLOSED', updatedAt: new Date() } })
         const purchase = await tx.purchase.create({ data: { userId: buyerId, quoteRequestId: proposal.quoteRequestId, proposalId, storeProfileId: proposal.storeProfileId, totalPrice: proposal.cashPrice + proposal.deliveryFee } })
         await tx.notification.create({ data: { userId: buyerId, title: 'Pedido criado', message: `Seu pedido de ${proposal.quoteRequest.partName} foi criado. Combine os próximos passos com a loja.`, link: `/cotacoes?view=purchases` } })
         await tx.notification.create({ data: { userId: proposal.storeProfile.userId, title: 'Proposta aceita', message: `Sua proposta para ${proposal.quoteRequest.partName} foi aceita pelo comprador.`, link: proposal.storeProfile.user.role === 'GUINCHO' ? '/guincho/radar' : '/cotacoes?view=realized' } })
         return { proposal: updatedProp, purchase }
       })
+      } catch (e: any) {
+        if (e?.message === 'NOT_ALLOWED') throw e
+        console.warn('Prisma accept proposal error, fallback to memory:', e)
+      }
     }
     const proposal = proposalsMemory.find((p) => p.id === proposalId)
     const quote = proposal && quotesMemory.find((q) => q.id === proposal.quoteRequestId)
@@ -816,7 +848,7 @@ export const db = {
     const existing = purchasesMemory.find((purchase) => purchase.quoteRequestId === quote.id)
     if (existing) return { proposal, purchase: existing }
     proposalsMemory.filter((item) => item.quoteRequestId === quote.id).forEach((item) => { item.status = item.id === proposalId ? 'ACCEPTED' : 'REJECTED' })
-    proposal.status = 'ACCEPTED'; quote.status = 'ACCEPTED'; quote.updatedAt = new Date()
+    proposal.status = 'ACCEPTED'; quote.status = 'CLOSED'; quote.updatedAt = new Date()
     const purchase: PurchaseData = { id: `purchase-${Date.now()}`, userId: buyerId, quoteRequestId: quote.id, proposalId, storeProfileId: proposal.storeProfileId, status: 'PENDING_CONTACT', totalPrice: proposal.cashPrice + proposal.deliveryFee, createdAt: new Date(), updatedAt: new Date(), quoteRequest: quote, proposal, storeProfile: proposal.storeProfile }
     purchasesMemory.unshift(purchase)
     notificationsMemory.unshift({ id: `notification-${Date.now()}`, userId: buyerId, title: 'Pedido criado', message: `Seu pedido de ${quote.partName} foi criado. Combine os próximos passos com a loja.`, link: '/cotacoes?view=purchases', read: false, createdAt: new Date() })
@@ -830,7 +862,7 @@ export const db = {
       const account = await prisma.user.findUnique({ where: { id: userId }, select: { role: true, storeProfile: { select: { id: true } } } })
       if (account && ['LOJISTA', 'VENDEDOR', 'GUINCHO'].includes(role || account.role) && account.storeProfile) {
         const [proposals, purchases, reviews, notifications] = await Promise.all([
-          prisma.proposal.findMany({ where: { storeProfileId: account.storeProfile.id }, orderBy: { createdAt: 'desc' }, include: { quoteRequest: { include: { vehicle: true, user: { select: { name: true, city: true, neighborhood: true } } } }, storeProfile: true } }),
+          prisma.proposal.findMany({ where: { storeProfileId: account.storeProfile.id }, orderBy: { createdAt: 'desc' }, include: { quoteRequest: { include: { vehicle: true, proposals: { select: { storeProfileId: true } }, user: { select: { name: true, city: true, neighborhood: true } } } }, storeProfile: true } }),
           prisma.purchase.findMany({ where: { storeProfileId: account.storeProfile.id }, orderBy: { createdAt: 'desc' }, include: { quoteRequest: true, proposal: { include: { storeProfile: true } }, storeProfile: true } }),
           prisma.review.findMany({ where: { storeProfileId: account.storeProfile.id }, orderBy: { createdAt: 'desc' }, include: { user: { select: { name: true } }, purchase: true } }),
           prisma.notification.findMany({ where: { userId }, orderBy: { createdAt: 'desc' }, take: 20 }),
@@ -851,7 +883,8 @@ export const db = {
     const purchases = purchasesMemory.filter((purchase) => purchase.userId === userId)
     const seller = usersMemory.find((item) => item.id === userId)?.storeProfile
     if (seller && ['LOJISTA', 'VENDEDOR', 'GUINCHO'].includes(role || usersMemory.find((item) => item.id === userId)?.role || '')) {
-      return { quoteRequests: [], purchases: [], reviews: [], notifications: notificationsMemory.filter((notification) => notification.userId === userId).sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime()).slice(0, 20), sellerProposals: proposalsMemory.filter((proposal) => proposal.storeProfileId === seller.id), sellerPurchases: purchasesMemory.filter((purchase) => purchase.storeProfileId === seller.id), sellerReviews: reviewsMemory.filter((review) => review.storeProfileId === seller.id) }
+      const sellerProposals = proposalsMemory.filter((proposal) => proposal.storeProfileId === seller.id).map((proposal) => ({ ...proposal, quoteRequest: quotesMemory.find((quote) => quote.id === proposal.quoteRequestId) }))
+      return { quoteRequests: [], purchases: [], reviews: [], notifications: notificationsMemory.filter((notification) => notification.userId === userId).sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime()).slice(0, 20), sellerProposals, sellerPurchases: purchasesMemory.filter((purchase) => purchase.storeProfileId === seller.id), sellerReviews: reviewsMemory.filter((review) => review.storeProfileId === seller.id) }
     }
     return { quoteRequests: quotes, purchases, reviews: reviewsMemory.filter((review) => review.userId === userId), notifications: notificationsMemory.filter((notification) => notification.userId === userId).sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime()).slice(0, 20) }
   },

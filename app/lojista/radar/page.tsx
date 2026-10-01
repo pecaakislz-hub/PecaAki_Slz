@@ -110,7 +110,7 @@ export default function LojistaRadarPage() {
 
                   <div className="flex items-center justify-between text-[11px] text-slate-500 dark:text-slate-400">
                     <span>Preferência: <strong>{q.deliveryPreference === 'DELIVERY' ? 'Entrega no Bairro' : 'Retirada'}</strong></span>
-                    <span>Propostas: <strong className="text-amber-600 dark:text-amber-400">{q.proposals?.length || 0}</strong></span>
+                    <span>Concorrentes: <strong className="text-amber-600 dark:text-amber-400">{q.competitorCount ?? q.proposals?.length ?? 0}</strong></span>
                   </div>
                 </div>
 

@@ -30,6 +30,9 @@ export async function POST(req: Request) {
     }
 
     const { quoteRequestId, availability, condition, cashPrice, installmentPrice, deliveryFee, deliveryTime, notes, photoUrl } = body
+    const quote = quoteRequestId ? await db.findQuoteById(quoteRequestId) : null
+    if (!quote) return NextResponse.json({ error: 'Cotação não encontrada.' }, { status: 404 })
+    if (['ACCEPTED', 'CLOSED'].includes(quote.status)) return NextResponse.json({ error: 'Esta cotação já foi encerrada.' }, { status: 409 })
 
     if (!quoteRequestId || !cashPrice || !deliveryTime) {
       return NextResponse.json({ error: 'Cotação, valor à vista e tempo de entrega são obrigatórios' }, { status: 400 })
