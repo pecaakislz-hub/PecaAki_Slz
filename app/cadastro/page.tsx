@@ -5,6 +5,7 @@ import { useRouter, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import { User, Store, Wrench, Truck, Mail, Phone, Lock, MapPin, Building, AlertCircle, ArrowRight, ShieldCheck } from 'lucide-react'
 import ProfileImageEditor from '@/components/ProfileImageEditor'
+import PasswordInput from '@/components/PasswordInput'
 
 function RegisterContent() {
   const router = useRouter()
@@ -173,8 +174,7 @@ function RegisterContent() {
 
             <div>
               <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">Senha</label>
-              <input
-                type="password"
+              <PasswordInput
                 required
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}

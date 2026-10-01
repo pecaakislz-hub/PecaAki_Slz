@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { LogIn, Mail, Lock, AlertCircle, ArrowRight } from 'lucide-react'
+import PasswordInput from '@/components/PasswordInput'
 
 export default function LoginPage() {
   const [email, setEmail] = useState('')
@@ -92,12 +93,12 @@ export default function LoginPage() {
             <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">Senha</label>
             <div className="relative">
               <Lock className="w-4 h-4 text-slate-400 absolute left-3 top-3.5" />
-              <input
-                type="password"
+              <PasswordInput
                 required
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 placeholder="••••••••"
+                leftIcon={<Lock className="w-4 h-4" />}
                 className="w-full bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-xl py-2.5 pl-9 pr-3 text-sm text-slate-900 dark:text-white focus:outline-none focus:border-amber-500 transition-colors"
               />
             </div>
