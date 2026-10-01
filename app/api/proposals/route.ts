@@ -25,14 +25,16 @@ export async function POST(req: Request) {
       }
     }
 
-    if (!['LOJISTA', 'VENDEDOR', 'GUINCHO'].includes(user.role) || !user.storeProfile) {
-      return NextResponse.json({ error: 'Apenas vendedores e guinchos cadastrados podem enviar orçamentos' }, { status: 403 })
+    if (!['LOJISTA', 'VENDEDOR', 'OFICINA', 'GUINCHO'].includes(user.role) || !user.storeProfile) {
+      return NextResponse.json({ error: 'Apenas vendedores, oficinas e guinchos cadastrados podem enviar respostas' }, { status: 403 })
     }
 
     const { quoteRequestId, availability, condition, cashPrice, installmentPrice, deliveryFee, deliveryTime, notes, photoUrl } = body
     const quote = quoteRequestId ? await db.findQuoteById(quoteRequestId) : null
     if (!quote) return NextResponse.json({ error: 'Cotação não encontrada.' }, { status: 404 })
     if (['ACCEPTED', 'CLOSED'].includes(quote.status)) return NextResponse.json({ error: 'Esta cotação já foi encerrada.' }, { status: 409 })
+    if (user.role === 'OFICINA' && quote.category !== 'Oficina') return NextResponse.json({ error: 'A oficina deve responder apenas a atendimentos de oficina.' }, { status: 403 })
+    if (user.role === 'GUINCHO' && quote.category !== 'Guincho') return NextResponse.json({ error: 'O guincho deve responder apenas a atendimentos de guincho.' }, { status: 403 })
 
     if (!quoteRequestId || !cashPrice || !deliveryTime) {
       return NextResponse.json({ error: 'Cotação, valor à vista e tempo de entrega são obrigatórios' }, { status: 400 })

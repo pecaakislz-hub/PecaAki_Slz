@@ -17,6 +17,12 @@ function NewQuoteContent() {
 
   const [partName, setPartName] = useState('')
   const [description, setDescription] = useState('')
+  const [serviceType, setServiceType] = useState('')
+  const [serviceLocation, setServiceLocation] = useState('')
+  const [serviceMode, setServiceMode] = useState('')
+  const [serviceSchedule, setServiceSchedule] = useState('')
+  const [destination, setDestination] = useState('')
+  const [urgency, setUrgency] = useState('Agora')
   const [category, setCategory] = useState('Motor')
   const [deliveryPreference, setDeliveryPreference] = useState<'DELIVERY' | 'PICKUP'>('DELIVERY')
   
@@ -106,7 +112,7 @@ function NewQuoteContent() {
           vehicleId: vehicleId || null,
           vehicleText: vehicleId ? null : vehicleText,
           partName,
-          description,
+          description: isServiceRequest ? `${description}\n\nDetalhes do atendimento: ${serviceType || 'A definir'}. ${serviceMode ? `Modalidade: ${serviceMode}.` : ''} ${serviceLocation ? `Local: ${serviceLocation}.` : ''} ${serviceSchedule ? `Agendamento: ${serviceSchedule}.` : ''} ${destination ? `Destino: ${destination}.` : ''} Urgência: ${urgency}.` : description,
           category,
           deliveryPreference,
           targetCities,
@@ -216,22 +222,7 @@ function NewQuoteContent() {
 
             <div>
               <label className="block text-xs font-semibold text-slate-300 mb-1">Categoria</label>
-              <select
-                value={category}
-                onChange={(e) => setCategory(e.target.value)}
-                className="w-full bg-slate-950 border border-slate-800 rounded-xl py-3 px-3 text-sm text-white focus:outline-none focus:border-amber-500"
-              >
-                <option value="Motor">Motor</option>
-                <option value="Suspensão">Suspensão</option>
-                <option value="Freios">Freios</option>
-                <option value="Elétrica">Elétrica</option>
-                <option value="Transmissão">Transmissão</option>
-                <option value="Lataria">Lataria</option>
-                <option value="Vidros">Vidros</option>
-                <option value="Pneus">Pneus</option>
-                <option value="Acessórios">Acessórios</option>
-                <option value="Geral">Geral / Diversos</option>
-              </select>
+              {isServiceRequest ? <div className="rounded-xl border border-amber-500/40 bg-amber-500/10 px-3 py-3 text-sm font-bold text-amber-300">Atendimento de {service === 'oficina' ? 'oficina' : 'guincho'}</div> : <select value={category} onChange={(e) => setCategory(e.target.value)} className="w-full bg-slate-950 border border-slate-800 rounded-xl py-3 px-3 text-sm text-white focus:outline-none focus:border-amber-500"><option value="Motor">Motor</option><option value="Suspensão">Suspensão</option><option value="Freios">Freios</option><option value="Elétrica">Elétrica</option><option value="Transmissão">Transmissão</option><option value="Lataria">Lataria</option><option value="Vidros">Vidros</option><option value="Pneus">Pneus</option><option value="Acessórios">Acessórios</option><option value="Geral">Geral / Diversos</option></select>}
             </div>
           </div>
 
@@ -248,6 +239,8 @@ function NewQuoteContent() {
               className="w-full bg-slate-950 border border-slate-800 rounded-xl py-2.5 px-3 text-sm text-white focus:outline-none focus:border-amber-500"
             />
           </div>
+
+          {isServiceRequest && <div className="grid gap-4 rounded-2xl border border-amber-500/20 bg-slate-950/60 p-4 sm:grid-cols-2"><div><label className="block text-xs font-semibold text-slate-300 mb-1">{service === 'oficina' ? 'Tipo de serviço da oficina' : 'Tipo de assistência do guincho'}</label><select required value={serviceType} onChange={(e) => setServiceType(e.target.value)} className="w-full bg-slate-950 border border-slate-800 rounded-xl py-3 px-3 text-sm text-white focus:outline-none focus:border-amber-500"><option value="">Selecione</option>{service === 'oficina' ? <><option>Revisão preventiva</option><option>Diagnóstico de falha</option><option>Motor e transmissão</option><option>Freios e suspensão</option><option>Elétrica e eletrônica</option><option>Ar-condicionado</option><option>Funilaria e pintura</option></> : <><option>Reboque</option><option>Pane mecânica</option><option>Pane elétrica</option><option>Pneu furado</option><option>Carga de bateria</option><option>Pane seca</option></>}</select></div><div><label className="block text-xs font-semibold text-slate-300 mb-1">{service === 'oficina' ? 'Local e forma desejada' : 'Urgência do atendimento'}</label>{service === 'oficina' ? <select required value={serviceMode} onChange={(e) => setServiceMode(e.target.value)} className="w-full bg-slate-950 border border-slate-800 rounded-xl py-3 px-3 text-sm text-white focus:outline-none focus:border-amber-500"><option value="">Selecione</option><option>Na oficina</option><option>No endereço do cliente</option><option>Busca e entrega do veículo</option></select> : <select value={urgency} onChange={(e) => setUrgency(e.target.value)} className="w-full bg-slate-950 border border-slate-800 rounded-xl py-3 px-3 text-sm text-white focus:outline-none focus:border-amber-500"><option>Agora</option><option>Nas próximas horas</option><option>Agendado</option></select>}</div>{service === 'oficina' ? <div><label className="block text-xs font-semibold text-slate-300 mb-1">Data/janela de atendimento</label><input value={serviceSchedule} onChange={(e) => setServiceSchedule(e.target.value)} placeholder="Ex.: hoje, das 14h às 16h" className="w-full bg-slate-950 border border-slate-800 rounded-xl py-3 px-3 text-sm text-white focus:outline-none focus:border-amber-500" /></div> : <div><label className="block text-xs font-semibold text-slate-300 mb-1">Destino do veículo</label><input required value={destination} onChange={(e) => setDestination(e.target.value)} placeholder="Ex.: oficina no Centro" className="w-full bg-slate-950 border border-slate-800 rounded-xl py-3 px-3 text-sm text-white focus:outline-none focus:border-amber-500" /></div>}{service === 'guincho' && <div><label className="block text-xs font-semibold text-slate-300 mb-1">Local exato de coleta</label><input required value={serviceLocation} onChange={(e) => setServiceLocation(e.target.value)} placeholder="Rua, número e referência" className="w-full bg-slate-950 border border-slate-800 rounded-xl py-3 px-3 text-sm text-white focus:outline-none focus:border-amber-500" /></div>}</div>}
 
           {/* Upload de Fotos */}
           <div>
@@ -279,69 +272,11 @@ function NewQuoteContent() {
           </div>
         </div>
 
-        {/* SEÇÃO 3: PREFERÊNCIA DE ENTREGA E MUNICÍPIOS */}
+        {/* SEÇÃO 3: ATENDIMENTO E MUNICÍPIOS */}
         <div className="bg-slate-900 p-6 rounded-2xl border border-slate-800 space-y-4">
-          <h3 className="text-base font-bold text-white flex items-center gap-2">
-            <Truck className="w-5 h-5 text-amber-400" /> 3. Entrega & Região na Grande São Luís
-          </h3>
-
-          <div>
-            <label className="block text-xs font-semibold text-slate-300 mb-2">Como prefere receber a peça?</label>
-            <div className="grid grid-cols-2 gap-3">
-              <button
-                type="button"
-                onClick={() => setDeliveryPreference('DELIVERY')}
-                className={`py-3 px-4 rounded-xl text-xs font-bold border text-left transition-all ${
-                  deliveryPreference === 'DELIVERY'
-                    ? 'bg-amber-500/10 border-amber-500 text-amber-400'
-                    : 'bg-slate-950 border-slate-800 text-slate-400'
-                }`}
-              >
-                <div className="flex items-center gap-1.5 mb-1 font-extrabold text-sm">
-                  <Truck className="w-4 h-4" /> Entrega no Bairro (Motoboy)
-                </div>
-                <div className="text-[11px] font-normal opacity-80">Lojista entrega no seu endereço</div>
-              </button>
-
-              <button
-                type="button"
-                onClick={() => setDeliveryPreference('PICKUP')}
-                className={`py-3 px-4 rounded-xl text-xs font-bold border text-left transition-all ${
-                  deliveryPreference === 'PICKUP'
-                    ? 'bg-amber-500/10 border-amber-500 text-amber-400'
-                    : 'bg-slate-950 border-slate-800 text-slate-400'
-                }`}
-              >
-                <div className="flex items-center gap-1.5 mb-1 font-extrabold text-sm">
-                  <MapPin className="w-4 h-4" /> Retirada no Balcão da Loja
-                </div>
-                <div className="text-[11px] font-normal opacity-80">Você busca na loja mais próxima</div>
-              </button>
-            </div>
-          </div>
-
-          <div>
-            <label className="block text-xs font-semibold text-slate-300 mb-2">
-              Municípios-alvo para envio das notificações na Ilha:
-            </label>
-            <div className="flex flex-wrap gap-2">
-              {['São Luís', 'Paço do Lumiar', 'São José de Ribamar', 'Raposa'].map((cityName) => (
-                <button
-                  type="button"
-                  key={cityName}
-                  onClick={() => toggleCity(cityName)}
-                  className={`py-2 px-3 rounded-xl text-xs font-semibold border flex items-center gap-1.5 transition-all ${
-                    targetCities.includes(cityName)
-                      ? 'bg-slate-800 border-amber-500 text-amber-400'
-                      : 'bg-slate-950 border-slate-800 text-slate-500'
-                  }`}
-                >
-                  <CheckCircle2 className={`w-3.5 h-3.5 ${targetCities.includes(cityName) ? 'text-amber-400' : 'text-slate-700'}`} />
-                  {cityName}
-                </button>
-              ))}
-            </div>
-          </div>
+          <h3 className="text-base font-bold text-white flex items-center gap-2"><Truck className="w-5 h-5 text-amber-400" /> 3. {isServiceRequest ? 'Local, forma de atendimento & região' : 'Entrega & Região na Grande São Luís'}</h3>
+          {!isServiceRequest ? <div><label className="block text-xs font-semibold text-slate-300 mb-2">Como prefere receber a peça?</label><div className="grid grid-cols-2 gap-3"><button type="button" onClick={() => setDeliveryPreference('DELIVERY')} className={`py-3 px-4 rounded-xl text-xs font-bold border text-left transition-all ${deliveryPreference === 'DELIVERY' ? 'bg-amber-500/10 border-amber-500 text-amber-400' : 'bg-slate-950 border-slate-800 text-slate-400'}`}><div className="flex items-center gap-1.5 mb-1 font-extrabold text-sm"><Truck className="w-4 h-4" /> Entrega no Bairro</div><div className="text-[11px] font-normal opacity-80">Lojista entrega no seu endereço</div></button><button type="button" onClick={() => setDeliveryPreference('PICKUP')} className={`py-3 px-4 rounded-xl text-xs font-bold border text-left transition-all ${deliveryPreference === 'PICKUP' ? 'bg-amber-500/10 border-amber-500 text-amber-400' : 'bg-slate-950 border-slate-800 text-slate-400'}`}><div className="flex items-center gap-1.5 mb-1 font-extrabold text-sm"><MapPin className="w-4 h-4" /> Retirada no balcão</div><div className="text-[11px] font-normal opacity-80">Você busca na loja mais próxima</div></button></div></div> : <div className="grid gap-3 rounded-2xl border border-amber-500/20 bg-slate-950/60 p-4 sm:grid-cols-2"><div><label className="block text-xs font-semibold text-slate-300 mb-1">{service === 'oficina' ? 'Endereço/local do atendimento' : 'Local exato de coleta'}</label><input required value={serviceLocation} onChange={(e) => setServiceLocation(e.target.value)} placeholder={service === 'oficina' ? 'Informe endereço ou referência' : 'Rua, número e referência'} className="w-full bg-slate-950 border border-slate-800 rounded-xl py-3 px-3 text-sm text-white focus:outline-none focus:border-amber-500" /></div>{service === 'guincho' && <div><label className="block text-xs font-semibold text-slate-300 mb-1">Destino</label><input required value={destination} onChange={(e) => setDestination(e.target.value)} placeholder="Oficina, residência ou destino" className="w-full bg-slate-950 border border-slate-800 rounded-xl py-3 px-3 text-sm text-white focus:outline-none focus:border-amber-500" /></div>}<div><label className="block text-xs font-semibold text-slate-300 mb-1">{service === 'oficina' ? 'Forma de chegada' : 'Prioridade'}</label><p className="rounded-xl border border-slate-800 bg-slate-950 px-3 py-3 text-xs text-slate-300">{service === 'oficina' ? 'A oficina responderá se atende no local, na oficina ou com busca e entrega.' : `Atendimento: ${urgency}.`}</p></div></div>}
+          <div><label className="block text-xs font-semibold text-slate-300 mb-2">Municípios-alvo para envio das notificações na Ilha:</label><div className="flex flex-wrap gap-2">{['São Luís', 'Paço do Lumiar', 'São José de Ribamar', 'Raposa'].map((cityName) => <button type="button" key={cityName} onClick={() => toggleCity(cityName)} className={`py-2 px-3 rounded-xl text-xs font-semibold border flex items-center gap-1.5 transition-all ${targetCities.includes(cityName) ? 'bg-slate-800 border-amber-500 text-amber-400' : 'bg-slate-950 border-slate-800 text-slate-500'}`}><CheckCircle2 className={`w-3.5 h-3.5 ${targetCities.includes(cityName) ? 'text-amber-400' : 'text-slate-700'}`} />{cityName}</button>)}</div></div>
         </div>
 
         <button
