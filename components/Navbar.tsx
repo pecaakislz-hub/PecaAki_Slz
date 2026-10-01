@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import { usePathname, useRouter } from 'next/navigation'
-import { ChevronDown, ChevronRight, FileText, LogIn, LogOut, Package, Settings, Star, UserRound, X } from 'lucide-react'
+import { Car, ChevronDown, ChevronRight, FileText, LogIn, LogOut, Package, Settings, Star, UserRound, X } from 'lucide-react'
 import ThemeToggle from './ThemeToggle'
 
 type UserSession = { id: string; name: string; email: string; role: string; storeProfile?: unknown }
@@ -79,7 +79,7 @@ export default function Navbar() {
                   <Link href="/cotacoes?view=purchases" onClick={closeMenu} className={menuButtonClass}><Package className="h-4 w-4 text-blue-500" /> Minhas Compras e Pedidos</Link>
                   <Link href="/cotacoes?view=reviews" onClick={closeMenu} className={menuButtonClass}><Star className="h-4 w-4 text-amber-500" /> Avaliações</Link>
                 </div>
-                <div className="py-1"><Link href="/conta" onClick={closeMenu} className={`${menuButtonClass} text-red-600 dark:text-red-400`}><Settings className="h-4 w-4" /> Dados Cadastrais</Link></div>
+                <div className="py-1"><Link href="/conta" onClick={closeMenu} className={`${menuButtonClass} text-red-600 dark:text-red-400`}><Settings className="h-4 w-4" /> Dados Cadastrais</Link>{user.role === 'COMPRADOR' && <Link href="/garagem" onClick={closeMenu} className={`${menuButtonClass} text-amber-700 dark:text-amber-300`}><Car className="h-4 w-4" /> Garagem Virtual</Link>}</div>
               </> : <div className="space-y-2 p-3"><Link href="/login" onClick={closeMenu} className="block rounded-xl bg-amber-500 px-4 py-2.5 text-center text-xs font-bold text-slate-950 hover:bg-amber-400">Entrar</Link><Link href="/cadastro" onClick={closeMenu} className="block rounded-xl border border-slate-200 px-4 py-2.5 text-center text-xs font-bold hover:bg-slate-50 dark:border-slate-700 dark:hover:bg-slate-800">Criar cadastro</Link></div>}
             </div>}
           </div>
