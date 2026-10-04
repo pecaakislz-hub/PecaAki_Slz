@@ -673,7 +673,7 @@ export const db = {
   createQuote: async (data: any) => {
     if (isPrismaConfigured()) {
       try {
-        return await prisma.quoteRequest.create({
+        const quote = await prisma.quoteRequest.create({
           data: {
             userId: data.userId,
             vehicleId: data.vehicleId || null,
@@ -692,6 +692,14 @@ export const db = {
             proposals: true
           }
         })
+        const providerRole = data.category === 'Guincho' ? 'GUINCHO' : data.category === 'Oficina' ? 'OFICINA' : null
+        if (providerRole) {
+          const cities = Array.isArray(data.targetCities) ? data.targetCities : ['São Luís', 'Paço do Lumiar', 'São José de Ribamar', 'Raposa']
+          const providers = await prisma.user.findMany({ where: { role: providerRole }, select: { id: true, city: true, storeProfile: { select: { city: true } } } })
+          const recipients = providers.filter((provider) => cities.includes(provider.storeProfile?.city || provider.city)).map((provider) => provider.id)
+          if (recipients.length) await prisma.notification.createMany({ data: recipients.map((userId) => ({ userId, title: providerRole === 'GUINCHO' ? 'Novo pedido de guincho' : 'Novo atendimento de oficina', message: `Há uma nova solicitação de ${data.category.toLowerCase()} em ${cities.join(', ')}.`, link: providerRole === 'GUINCHO' ? '/guincho/radar' : '/cotacoes?view=serviceRequests' })) })
+        }
+        return quote
       } catch (e) {
         console.warn('Prisma create quote error, fallback to memory:', e)
       }
@@ -720,6 +728,11 @@ export const db = {
     }
 
     quotesMemory.unshift(newQuote)
+    const providerRole = data.category === 'Guincho' ? 'GUINCHO' : data.category === 'Oficina' ? 'OFICINA' : null
+    if (providerRole) {
+      const cities = Array.isArray(data.targetCities) ? data.targetCities : ['São Luís', 'Paço do Lumiar', 'São José de Ribamar', 'Raposa']
+      usersMemory.filter((provider) => provider.role === providerRole && provider.id !== data.userId && cities.includes(provider.storeProfile?.city || provider.city)).forEach((provider) => notificationsMemory.unshift({ id: `notification-${Date.now()}-${provider.id}`, userId: provider.id, title: providerRole === 'GUINCHO' ? 'Novo pedido de guincho' : 'Novo atendimento de oficina', message: `Há uma nova solicitação de ${data.category.toLowerCase()} em ${cities.join(', ')}.`, link: providerRole === 'GUINCHO' ? '/guincho/radar' : '/cotacoes?view=serviceRequests', read: false, createdAt: new Date() }))
+    }
     return newQuote
   },
 
@@ -868,13 +881,14 @@ export const db = {
         return { ...(profile || { quoteRequests: [], purchases: [], reviews: [], notifications: [] }), serviceRequests: serviceRequests.filter((quote) => quote.userId !== userId && (!account.storeProfile?.city || quote.targetCities.includes(account.storeProfile.city))) }
       }
       if (account && ['LOJISTA', 'VENDEDOR', 'GUINCHO'].includes(role || account.role) && account.storeProfile) {
-        const [proposals, purchases, reviews, notifications] = await Promise.all([
+        const [proposals, purchases, reviews, notifications, serviceRequests] = await Promise.all([
           prisma.proposal.findMany({ where: { storeProfileId: account.storeProfile.id }, orderBy: { createdAt: 'desc' }, include: { quoteRequest: { include: { vehicle: true, proposals: { select: { storeProfileId: true } }, user: { select: { name: true, city: true, neighborhood: true } } } }, storeProfile: true } }),
           prisma.purchase.findMany({ where: { storeProfileId: account.storeProfile.id }, orderBy: { createdAt: 'desc' }, include: { quoteRequest: true, proposal: { include: { storeProfile: true } }, storeProfile: true } }),
           prisma.review.findMany({ where: { storeProfileId: account.storeProfile.id }, orderBy: { createdAt: 'desc' }, include: { user: { select: { name: true } }, purchase: true } }),
           prisma.notification.findMany({ where: { userId }, orderBy: { createdAt: 'desc' }, take: 20 }),
+          account.role === 'GUINCHO' ? prisma.quoteRequest.findMany({ where: { category: 'Guincho', status: { not: 'CLOSED' } }, orderBy: { createdAt: 'desc' }, include: { vehicle: true, proposals: { include: { storeProfile: true } }, user: { select: { name: true, city: true, neighborhood: true } } } }) : Promise.resolve([]),
         ])
-        return { quoteRequests: [], purchases: [], reviews: [], notifications, serviceRequests: [], sellerProposals: proposals, sellerPurchases: purchases, sellerReviews: reviews }
+        return { quoteRequests: [], purchases: [], reviews: [], notifications, serviceRequests: account.role === 'GUINCHO' ? serviceRequests.filter((quote) => quote.userId !== userId && (!account.storeProfile?.city || quote.targetCities.includes(account.storeProfile.city))) : [], sellerProposals: proposals, sellerPurchases: purchases, sellerReviews: reviews }
       }
       return prisma.user.findUnique({ where: { id: userId }, select: {
         quoteRequests: { orderBy: { createdAt: 'desc' }, include: { vehicle: true, proposals: { orderBy: { createdAt: 'desc' }, include: { storeProfile: true } }, purchase: { include: { proposal: { include: { storeProfile: true } }, storeProfile: true, review: true } } } },
@@ -891,7 +905,9 @@ export const db = {
     const seller = usersMemory.find((item) => item.id === userId)?.storeProfile
     if (seller && ['LOJISTA', 'VENDEDOR', 'GUINCHO'].includes(role || usersMemory.find((item) => item.id === userId)?.role || '')) {
       const sellerProposals = proposalsMemory.filter((proposal) => proposal.storeProfileId === seller.id).map((proposal) => ({ ...proposal, quoteRequest: quotesMemory.find((quote) => quote.id === proposal.quoteRequestId) }))
-      return { quoteRequests: [], purchases: [], reviews: [], notifications: notificationsMemory.filter((notification) => notification.userId === userId).sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime()).slice(0, 20), serviceRequests: [], sellerProposals, sellerPurchases: purchasesMemory.filter((purchase) => purchase.storeProfileId === seller.id), sellerReviews: reviewsMemory.filter((review) => review.storeProfileId === seller.id) }
+      const currentRole = role || usersMemory.find((item) => item.id === userId)?.role
+      const serviceRequests = currentRole === 'GUINCHO' ? quotesMemory.filter((quote) => quote.category === 'Guincho' && quote.status !== 'CLOSED' && quote.userId !== userId && (seller.city ? quote.targetCities.includes(seller.city) : true)) : []
+      return { quoteRequests: [], purchases: [], reviews: [], notifications: notificationsMemory.filter((notification) => notification.userId === userId).sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime()).slice(0, 20), serviceRequests, sellerProposals, sellerPurchases: purchasesMemory.filter((purchase) => purchase.storeProfileId === seller.id), sellerReviews: reviewsMemory.filter((review) => review.storeProfileId === seller.id) }
     }
     const serviceRequests = quotesMemory.filter((quote) => quote.category === 'Oficina' && quote.status !== 'CLOSED' && quote.userId !== userId)
     return { quoteRequests: quotes, purchases, reviews: reviewsMemory.filter((review) => review.userId === userId), notifications: notificationsMemory.filter((notification) => notification.userId === userId).sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime()).slice(0, 20), serviceRequests }
