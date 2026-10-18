@@ -6,6 +6,7 @@ import PWAInstallPrompt from '@/components/PWAInstallPrompt'
 import RealtimeNotifications from '@/components/RealtimeNotifications'
 import BottomNav from '@/components/BottomNav'
 import { ThemeProvider } from '@/components/ThemeProvider'
+import SplashGate from '@/components/SplashGate'
 
 export const metadata: Metadata = {
   title: 'PeçaAki - Cotação de Autopeças e Motopeças na Grande São Luís',
@@ -31,16 +32,18 @@ export default function RootLayout({
   return (
     <html lang="pt-BR" className="h-full light" suppressHydrationWarning>
       <body className="flex flex-col min-h-screen bg-slate-50 text-slate-900 dark:bg-slate-950 dark:text-slate-100 transition-colors duration-200 antialiased selection:bg-amber-500 selection:text-slate-950">
-        <ThemeProvider>
-          <Navbar />
-          <RealtimeNotifications />
-          <PWAInstallPrompt />
-          <main className="flex-1 max-w-7xl w-full mx-auto px-4 pb-24 pt-6 sm:px-6 sm:pb-6 lg:px-8">
-            {children}
-          </main>
-          <Footer />
-          <BottomNav />
-        </ThemeProvider>
+        <SplashGate>
+          <ThemeProvider>
+            <Navbar />
+            <RealtimeNotifications />
+            <PWAInstallPrompt />
+            <main className="flex-1 max-w-7xl w-full mx-auto px-4 pb-24 pt-6 sm:px-6 sm:pb-6 lg:px-8">
+              {children}
+            </main>
+            <Footer />
+            <BottomNav />
+          </ThemeProvider>
+        </SplashGate>
       </body>
     </html>
   )
