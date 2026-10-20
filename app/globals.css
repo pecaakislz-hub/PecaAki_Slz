@@ -58,6 +58,17 @@ body {
   background-color: rgba(51, 65, 85, 0.82) !important;
 }
 
+/* Contorno suave para textos posicionados sobre imagens e superfícies translúcidas. */
+.hero-copy-outline {
+  text-shadow: 0 1px 0 rgba(255, 255, 255, 0.95), 0 0 6px rgba(255, 255, 255, 0.72);
+  -webkit-text-stroke: 0.1px rgba(15, 23, 42, 0.18);
+}
+
+.dark .hero-copy-outline {
+  text-shadow: 0 1px 0 rgba(2, 6, 23, 0.9), 0 0 7px rgba(2, 6, 23, 0.62);
+  -webkit-text-stroke: 0.1px rgba(255, 255, 255, 0.14);
+}
+
 /* Scrollbar estilizada */
 ::-webkit-scrollbar {
   width: 8px;
