@@ -12,7 +12,7 @@ export default function Footer() {
             <div className="flex items-center gap-2">
               <img
                 src="/logo-pecaaki-slz.png"
-                alt="PeçaAki Logo"
+                alt="PeçaAki Slz Logo"
                 className="h-9 w-auto object-contain"
               />
             </div>
@@ -106,7 +106,7 @@ export default function Footer() {
         </div>
 
         <div className="border-t border-slate-200 dark:border-slate-800/80 pt-6 flex flex-col md:flex-row items-center justify-between gap-4 text-xs text-slate-500 dark:text-slate-400">
-          <p>© {new Date().getFullYear()} PeçaAki Auto & Moto. Todos os direitos reservados. Maranhão, Brasil.</p>
+          <p>© {new Date().getFullYear()} PeçaAki Slz Auto & Moto. Todos os direitos reservados. Maranhão, Brasil.</p>
           <p className="flex items-center gap-2">
             <ShieldCheck className="w-4 h-4 text-emerald-500" />
             <span>Ambiente 100% Seguro • Conexão Criptografada SSL</span>

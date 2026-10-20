@@ -1,4 +1,4 @@
--- PeçaAki SLZ: as tabelas de negócio são acessadas exclusivamente por APIs
+-- PeçaAki Slz: as tabelas de negócio são acessadas exclusivamente por APIs
 -- server-side/Prisma. O navegador usa Supabase apenas para Auth.
 -- RLS + REVOKE formam uma defesa em profundidade contra o acesso público.
 

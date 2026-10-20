@@ -9,7 +9,7 @@ import { ThemeProvider } from '@/components/ThemeProvider'
 import SplashGate from '@/components/SplashGate'
 
 export const metadata: Metadata = {
-  title: 'PeçaAki - Cotação de Autopeças e Motopeças na Grande São Luís',
+  title: 'PeçaAki Slz - Cotação de Autopeças e Motopeças na Grande São Luís',
   description: 'O marketplace reverso de peças de carros e motos na Grande São Luís (São Luís, Paço do Lumiar, São José de Ribamar e Raposa). Receba orçamentos de lojistas locais em minutos.',
   manifest: '/manifest.webmanifest',
   themeColor: '#f59e0b',

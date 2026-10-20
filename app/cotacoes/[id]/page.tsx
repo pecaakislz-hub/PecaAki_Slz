@@ -45,7 +45,7 @@ export default function QuoteDetailPage() {
       if (res.ok) {
         // Redirecionar para WhatsApp da loja com mensagem pré-formatada
         const storePhone = proposal.storeProfile.phone.replace(/\D/g, '')
-        const message = `Olá ${proposal.storeProfile.fantasyName}! Aceitei sua proposta no PeçaAki para a peça "${quote.partName}". Podemos concluir o pagamento e a entrega?`
+        const message = `Olá ${proposal.storeProfile.fantasyName}! Aceitei sua proposta no PeçaAki Slz para a peça "${quote.partName}". Podemos concluir o pagamento e a entrega?`
         const whatsappUrl = `https://wa.me/55${storePhone}?text=${encodeURIComponent(message)}`
         
         window.open(whatsappUrl, '_blank')
@@ -263,7 +263,7 @@ export default function QuoteDetailPage() {
                 <div className="pt-2">
                   {p.status === 'ACCEPTED' ? (
                     <a
-                      href={`https://wa.me/55${p.storeProfile.phone.replace(/\D/g, '')}?text=${encodeURIComponent(`Olá! Aceitei a proposta no PeçaAki para "${quote.partName}".`)}`}
+                      href={`https://wa.me/55${p.storeProfile.phone.replace(/\D/g, '')}?text=${encodeURIComponent(`Olá! Aceitei a proposta no PeçaAki Slz para "${quote.partName}".`)}`}
                       target="_blank"
                       rel="noreferrer"
                       className="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-3 rounded-xl text-xs flex items-center justify-center gap-2 shadow-lg transition-colors"

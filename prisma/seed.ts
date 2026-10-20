@@ -4,7 +4,7 @@ import bcrypt from 'bcryptjs'
 const prisma = new PrismaClient()
 
 async function main() {
-  console.log('🌱 Iniciando inclusão dos dados de teste no PeçaAki (Grande São Luís)...')
+  console.log('🌱 Iniciando inclusão dos dados de teste no PeçaAki Slz (Grande São Luís)...')
 
   // Limpar banco
   await prisma.notification.deleteMany()
@@ -202,7 +202,7 @@ async function main() {
   }
 
   console.log('✅ Proposta de orçamento enviada pela São Luís Auto Peças!')
-  console.log('🎉 Dados de teste inseridos com sucesso no banco PeçaAki!')
+  console.log('🎉 Dados de teste inseridos com sucesso no banco PeçaAki Slz!')
 }
 
 main()

@@ -1,8 +1,8 @@
 import { FileText, Scale, AlertTriangle, ShieldCheck, CheckCircle2 } from 'lucide-react'
 
 export const metadata = {
-  title: 'Termos de Uso - PeçaAki',
-  description: 'Regras da plataforma, termos de intermediação e garantias do consumidor no PeçaAki.'
+  title: 'Termos de Uso - PeçaAki Slz',
+  description: 'Regras da plataforma, termos de intermediação e garantias do consumidor no PeçaAki Slz.'
 }
 
 export default function TermsPage() {
@@ -19,10 +19,10 @@ export default function TermsPage() {
       <div className="bg-slate-900 border border-slate-800 rounded-3xl p-6 sm:p-10 space-y-6 text-sm text-slate-300 leading-relaxed">
         <section className="space-y-2">
           <h2 className="text-lg font-bold text-white flex items-center gap-2">
-            <Scale className="w-4 h-4 text-amber-400" /> 1. Papel da Plataforma PeçaAki
+            <Scale className="w-4 h-4 text-amber-400" /> 1. Papel da Plataforma PeçaAki Slz
           </h2>
           <p>
-            O <strong>PeçaAki</strong> atua exclusivamente como uma plataforma tecnológica de intermediação de cotações entre Compradores (proprietários de veículos, mecânicos e motoristas) e Fornecedores/Lojistas credenciados de autopeças e motopeças na Grande São Luís.
+            O <strong>PeçaAki Slz</strong> atua exclusivamente como uma plataforma tecnológica de intermediação de cotações entre Compradores (proprietários de veículos, mecânicos e motoristas) e Fornecedores/Lojistas credenciados de autopeças e motopeças na Grande São Luís.
           </p>
         </section>
 

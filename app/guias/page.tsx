@@ -49,7 +49,7 @@ const guides: Guide[] = [
     tips: ['Não envie preço sem confirmar compatibilidade.', 'Se não tiver a peça em estoque, informe prazo de encomenda com transparência.', 'Mantenha o telefone e o endereço comercial atualizados.']
   },
   {
-    id: 'oficina', title: 'Guia da oficina', audience: 'Oficinas e profissionais', summary: 'Use o PeçaAki para pedir componentes e orientar clientes com mais agilidade.', icon: Wrench, color: 'orange',
+    id: 'oficina', title: 'Guia da oficina', audience: 'Oficinas e profissionais', summary: 'Use o PeçaAki Slz para pedir componentes e orientar clientes com mais agilidade.', icon: Wrench, color: 'orange',
     steps: [
       { title: 'Cadastre-se como Oficina', text: 'No cadastro, selecione Oficina e informe a região de atendimento. O perfil permite solicitar peças como comprador e, conforme a evolução do negócio, apresentar seus serviços.' },
       { title: 'Descreva o diagnóstico', text: 'Ao pedir uma cotação, inclua veículo, ano, motorização, sintomas, código da peça quando disponível e fotos da peça antiga.' },
@@ -79,9 +79,9 @@ const guides: Guide[] = [
     tips: ['Abra o painel periodicamente, especialmente após criar uma cotação.', 'Use os links do aviso para ir diretamente ao recurso relacionado.', 'Uma avaliação honesta melhora a experiência de todos.']
   },
   {
-    id: 'pwa', title: 'Uso no celular e instalação PWA', audience: 'Todos os usuários', summary: 'Instale o PeçaAki como app, use a barra inferior e alterne o modo de exibição.', icon: Smartphone, color: 'indigo',
+    id: 'pwa', title: 'Uso no celular e instalação PWA', audience: 'Todos os usuários', summary: 'Instale o PeçaAki Slz como app, use a barra inferior e alterne o modo de exibição.', icon: Smartphone, color: 'indigo',
     steps: [
-      { title: 'Instale quando o aviso aparecer', text: 'Em navegadores compatíveis, use o aviso Instalar PeçaAki. No iPhone, use Compartilhar > Adicionar à Tela de Início.' },
+      { title: 'Instale quando o aviso aparecer', text: 'Em navegadores compatíveis, use o aviso Instalar PeçaAki Slz. No iPhone, use Compartilhar > Adicionar à Tela de Início.' },
       { title: 'Use os atalhos inferiores', text: 'No celular, a barra fixa aparece em todas as telas: Início, Comprar, Vender, Oficinas, Guinchos e Guia. Ela permanece disponível mesmo dentro dos fluxos.' },
       { title: 'Escolha claro ou escuro', text: 'Use o botão Dia/Noite no topo ou no rodapé. A marca e os cartões foram preparados para manter contraste nos dois modos.' },
       { title: 'Se ficar sem conexão', text: 'O app tenta carregar a versão mais recente disponível no cache. Assim que a conexão voltar, atualize a tela para buscar novos dados e notificações.' },
@@ -112,10 +112,10 @@ export default function GuidesPage() {
 
   return <div className="mx-auto max-w-6xl space-y-7 py-2 sm:py-5">
     <section className="relative isolate overflow-hidden rounded-[2rem] border border-slate-700 bg-slate-950 text-white shadow-2xl">
-      <img src="/guia-pecaaki-cenario-01.webp" alt="Peças automotivas, carro e moto em um cenário PeçaAki" className="absolute inset-0 -z-20 h-full w-full object-cover opacity-55" />
+      <img src="/guia-pecaaki-cenario-01.webp" alt="Peças automotivas, carro e moto em um cenário PeçaAki Slz" className="absolute inset-0 -z-20 h-full w-full object-cover opacity-55" />
       <div className="absolute inset-0 -z-10 bg-gradient-to-br from-slate-950/95 via-slate-950/70 to-slate-950/35" />
       <div className="relative grid gap-7 px-5 py-8 sm:px-9 sm:py-11 lg:grid-cols-[1.1fr_.9fr] lg:items-end lg:px-12">
-        <div><span className="inline-flex items-center gap-2 rounded-full border border-amber-300/30 bg-amber-300/10 px-3 py-1.5 text-[11px] font-black uppercase tracking-[.15em] text-amber-200"><BookOpen className="h-4 w-4" /> Central de orientação</span><h1 className="mt-4 max-w-2xl text-3xl font-black leading-tight sm:text-5xl">Aprenda a usar cada caminho do PeçaAki.</h1><p className="mt-4 max-w-xl text-sm leading-relaxed text-slate-200 sm:text-base">Guias simples, ilustrados e passo a passo para compradores, lojistas, oficinas, guinchos e todos os perfis da plataforma.</p></div>
+        <div><span className="inline-flex items-center gap-2 rounded-full border border-amber-300/30 bg-amber-300/10 px-3 py-1.5 text-[11px] font-black uppercase tracking-[.15em] text-amber-200"><BookOpen className="h-4 w-4" /> Central de orientação</span><h1 className="mt-4 max-w-2xl text-3xl font-black leading-tight sm:text-5xl">Aprenda a usar cada caminho do PeçaAki Slz.</h1><p className="mt-4 max-w-xl text-sm leading-relaxed text-slate-200 sm:text-base">Guias simples, ilustrados e passo a passo para compradores, lojistas, oficinas, guinchos e todos os perfis da plataforma.</p></div>
         <div className="rounded-3xl border border-white/15 bg-white/10 p-4 backdrop-blur-md sm:p-5"><div className="flex items-center gap-3"><div className="rounded-2xl bg-amber-400 p-3 text-slate-950"><Gauge className="h-6 w-6" /></div><div><p className="text-sm font-black">Comece pelo seu perfil</p><p className="mt-1 text-xs text-slate-300">Escolha um guia abaixo e avance no seu ritmo.</p></div></div></div>
       </div>
     </section>

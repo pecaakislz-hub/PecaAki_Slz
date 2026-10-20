@@ -58,11 +58,11 @@ export default function PWAInstallPrompt() {
         <div className="fixed bottom-4 right-4 left-4 md:left-auto md:w-96 bg-slate-900 text-white p-4 rounded-2xl shadow-2xl border border-amber-500/40 z-50 flex items-center justify-between gap-3 animate-bounce-subtle">
           <div className="flex items-center gap-3">
             <span className="flex h-11 shrink-0 items-center rounded-lg bg-white px-1.5">
-              <img src="/logo-pecaaki-slz.png" alt="PeçaAki Auto & Moto" className="h-9 w-auto object-contain" />
+              <img src="/logo-pecaaki-slz.png" alt="PeçaAki Slz Auto & Moto" className="h-9 w-auto object-contain" />
             </span>
             <div>
               <h4 className="font-bold text-sm text-white flex items-center gap-1">
-                Instalar PeçaAki
+                Instalar PeçaAki Slz
                 <span className="text-[10px] bg-amber-500/20 text-amber-300 border border-amber-500/30 px-1.5 py-0.5 rounded">App</span>
               </h4>
               <p className="text-xs text-slate-300">Receba notificações de orçamentos direto no celular!</p>

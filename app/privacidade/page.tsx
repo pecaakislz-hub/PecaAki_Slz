@@ -1,7 +1,7 @@
 import { ShieldCheck, Lock, Eye, FileText, Database } from 'lucide-react'
 
 export const metadata = {
-  title: 'Política de Privacidade (LGPD) - PeçaAki',
+  title: 'Política de Privacidade (LGPD) - PeçaAki Slz',
   description: 'Conheça nossa Política de Privacidade em conformidade com a LGPD (Lei nº 13.709/2018).'
 }
 
@@ -22,7 +22,7 @@ export default function PrivacyPage() {
             <Lock className="w-4 h-4 text-amber-400" /> 1. Introdução e Compromisso LGPD
           </h2>
           <p>
-            O <strong>PeçaAki</strong> (PeçaAki Auto & Moto) está inteiramente comprometido com a proteção dos dados pessoais de seus usuários na Região Metropolitana da Grande São Luís, em estrita conformidade com a Lei Geral de Proteção de Dados Pessoais (LGPD - Lei nº 13.709/2018).
+            O <strong>PeçaAki Slz</strong> (PeçaAki Slz Auto & Moto) está inteiramente comprometido com a proteção dos dados pessoais de seus usuários na Região Metropolitana da Grande São Luís, em estrita conformidade com a Lei Geral de Proteção de Dados Pessoais (LGPD - Lei nº 13.709/2018).
           </p>
         </section>
 
@@ -43,7 +43,7 @@ export default function PrivacyPage() {
             <Eye className="w-4 h-4 text-amber-400" /> 3. Compartilhamento de Dados
           </h2>
           <p>
-            O PeçaAki não comercializa dados de usuários com terceiros. As fotos do pedido, o bairro do comprador e as especificações do veículo são visíveis apenas para os lojistas credenciados no Radar de Cotações para que estes possam emitir orçamentos precisos. O número de WhatsApp do comprador só é acessado pelo lojista escolhido quando o comprador clica para aceitar a proposta.
+            O PeçaAki Slz não comercializa dados de usuários com terceiros. As fotos do pedido, o bairro do comprador e as especificações do veículo são visíveis apenas para os lojistas credenciados no Radar de Cotações para que estes possam emitir orçamentos precisos. O número de WhatsApp do comprador só é acessado pelo lojista escolhido quando o comprador clica para aceitar a proposta.
           </p>
         </section>
 

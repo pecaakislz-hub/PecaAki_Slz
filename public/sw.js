@@ -67,7 +67,7 @@ self.addEventListener('fetch', (event) => {
 
 // Suporte a Notificações Push Locais
 self.addEventListener('push', (event) => {
-  const data = event.data ? event.data.json() : { title: 'PeçaAki', body: 'Novo orçamento recebido na Grande São Luís!' }
+  const data = event.data ? event.data.json() : { title: 'PeçaAki Slz', body: 'Novo orçamento recebido na Grande São Luís!' }
   const options = {
     body: data.body,
     icon: '/icon-192x192.png',

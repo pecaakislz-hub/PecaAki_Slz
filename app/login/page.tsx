@@ -59,7 +59,7 @@ export default function LoginPage() {
         <div className="text-center space-y-2">
           <img
             src="/logo-pecaaki-slz.png"
-            alt="PeçaAki Logo"
+            alt="PeçaAki Slz Logo"
             className="h-14 sm:h-16 w-auto mx-auto object-contain drop-shadow-md mb-2"
           />
           <h1 className="text-2xl font-bold text-slate-900 dark:text-white">Acessar a Plataforma</h1>
@@ -119,7 +119,7 @@ export default function LoginPage() {
             disabled={loading}
             className="w-full bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold py-3 rounded-xl text-sm flex items-center justify-center gap-2 shadow-lg shadow-amber-500/20 transition-all disabled:opacity-50"
           >
-            {loading ? 'Entrando...' : 'Entrar no PeçaAki'}
+            {loading ? 'Entrando...' : 'Entrar no PeçaAki Slz'}
             <ArrowRight className="w-4 h-4" />
           </button>
         </form>

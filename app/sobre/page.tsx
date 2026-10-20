@@ -2,8 +2,8 @@ import Link from 'next/link'
 import { Info, MapPin, ShieldCheck, HeartHandshake, Wrench, Store, Sparkles } from 'lucide-react'
 
 export const metadata = {
-  title: 'Sobre Nós - PeçaAki (Grande São Luís)',
-  description: 'Conheça a história e a missão do PeçaAki, o marketplace reverso de cotação de autopeças e motopeças focado na Grande São Luís, Maranhão.'
+  title: 'Sobre Nós - PeçaAki Slz (Grande São Luís)',
+  description: 'Conheça a história e a missão do PeçaAki Slz, o marketplace reverso de cotação de autopeças e motopeças focado na Grande São Luís, Maranhão.'
 }
 
 export default function AboutPage() {
@@ -13,11 +13,11 @@ export default function AboutPage() {
       <div className="bg-slate-900 border border-slate-800 rounded-3xl p-6 sm:p-12 space-y-4 text-center relative overflow-hidden">
         <img
           src="/logo-pecaaki-slz.png"
-          alt="PeçaAki Logo"
+          alt="PeçaAki Slz Logo"
           className="h-16 sm:h-20 w-auto mx-auto object-contain drop-shadow-lg mb-2"
         />
         <h1 className="text-3xl sm:text-5xl font-black text-white tracking-tight">
-          Sobre o <span className="text-amber-400">PeçaAki</span>
+          Sobre o <span className="text-amber-400">PeçaAki Slz</span>
         </h1>
         <p className="text-slate-300 text-sm sm:text-base max-w-2xl mx-auto leading-relaxed">
           Conectando motoristas, motociclistas e mecânicos das autopeças tradicionais da Grande São Luís de forma rápida, justa e digital.
@@ -32,7 +32,7 @@ export default function AboutPage() {
           </div>
           <h2 className="text-xl font-bold text-white">Nossa Origem na Ilha</h2>
           <p className="text-xs text-slate-300 leading-relaxed">
-            Nascido em São Luís do Maranhão, o PeçaAki surgiu para resolver a antiga peregrinação de procurar peças em bairros como Alemanha, Cohab, Maiobão e Turu. Em vez de fazer dezenas de ligações ou rodar quilômetros pela Av. dos Franceses e Jerônimo de Albuquerque, o comprador envia o pedido e as lojas respondem em minutos.
+            Nascido em São Luís do Maranhão, o PeçaAki Slz surgiu para resolver a antiga peregrinação de procurar peças em bairros como Alemanha, Cohab, Maiobão e Turu. Em vez de fazer dezenas de ligações ou rodar quilômetros pela Av. dos Franceses e Jerônimo de Albuquerque, o comprador envia o pedido e as lojas respondem em minutos.
           </p>
         </div>
 
