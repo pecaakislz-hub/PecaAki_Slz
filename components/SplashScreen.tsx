@@ -1,11 +1,27 @@
 'use client'
 
-import { useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 
 export default function SplashScreen({ onComplete }: { onComplete?: () => void }) {
   const [progress, setProgress] = useState(0)
   const [imageReady, setImageReady] = useState(false)
   const readyAt = useRef<number | null>(null)
+
+  const markImageReady = useCallback(() => {
+    setImageReady((current) => {
+      if (current) return current
+      readyAt.current = performance.now()
+      return true
+    })
+  }, [])
+
+  // Alguns navegadores/PWAs podem não disparar onLoad novamente para um GIF em cache.
+  // O fallback mantém a animação visual, mas garante que a abertura nunca fique presa em 86%.
+  useEffect(() => {
+    if (imageReady) return
+    const fallback = window.setTimeout(markImageReady, 1400)
+    return () => window.clearTimeout(fallback)
+  }, [imageReady, markImageReady])
 
   useEffect(() => {
     const startedAt = performance.now()
@@ -21,11 +37,6 @@ export default function SplashScreen({ onComplete }: { onComplete?: () => void }
     frame = window.requestAnimationFrame(tick)
     return () => window.cancelAnimationFrame(frame)
   }, [imageReady, onComplete])
-
-  const markImageReady = () => {
-    readyAt.current = performance.now()
-    setImageReady(true)
-  }
 
   return (
     <main className="fixed inset-0 z-[100] flex min-h-screen items-center justify-center overflow-hidden bg-white px-5 text-slate-900" aria-label="Apresentação PeçaAki Slz" aria-live="polite">
