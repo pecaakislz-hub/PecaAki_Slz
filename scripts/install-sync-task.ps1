@@ -15,9 +15,7 @@ if (-not (Test-Path $SyncScript)) {
 $dependencyArgument = if ($InstallDependencies) { ' -InstallDependencies' } else { '' }
 $arguments = "-NoProfile -ExecutionPolicy Bypass -File `"$SyncScript`" -ProjectPath `"$ProjectPath`"$dependencyArgument"
 $action = New-ScheduledTaskAction -Execute 'PowerShell.exe' -Argument $arguments -WorkingDirectory $ProjectPath
-$trigger = New-ScheduledTaskTrigger -Once -At (Get-Date).AddMinutes(1)
-$trigger.Repetition.Interval = New-TimeSpan -Minutes 5
-$trigger.Repetition.Duration = New-TimeSpan -Days 3650
+$trigger = New-ScheduledTaskTrigger -Once -At (Get-Date).AddMinutes(1) -RepetitionInterval (New-TimeSpan -Minutes 5) -RepetitionDuration (New-TimeSpan -Days 3650)
 $settings = New-ScheduledTaskSettingsSet -StartWhenAvailable -AllowStartIfOnBatteries -DontStopIfGoingOnBatteries
 $principal = New-ScheduledTaskPrincipal -UserId "$env:USERDOMAIN\$env:USERNAME" -LogonType Interactive -RunLevel Limited
 
