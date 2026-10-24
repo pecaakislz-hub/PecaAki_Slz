@@ -467,7 +467,18 @@ export const db = {
                   itemConditions: data.storeProfile.itemConditions || JSON.stringify([]),
                   contactEmail: data.storeProfile.contactEmail || data.email,
                   socialLinks: data.storeProfile.socialLinks || JSON.stringify({}),
-                  isVerified: true
+                  isVerified: true,
+                  subscription: {
+                    create: {
+                      plan: 'STARTER',
+                      billingCycle: 'MONTHLY',
+                      status: 'ACTIVE',
+                      monthlyQuoteLimit: 5,
+                      periodStart: new Date(),
+                      periodEnd: new Date(new Date().getFullYear(), new Date().getMonth() + 1, 0, 23, 59, 59, 999),
+                    },
+                  },
+                  creditWallet: { create: { balance: 0 } },
                 },
               },
             } : {}),

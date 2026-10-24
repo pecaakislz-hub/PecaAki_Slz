@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server'
 import { getCurrentUser } from '@/lib/auth'
 import { db } from '@/lib/db'
+import { canStoreRespondQuotation } from '@/lib/subscriptions'
 
 export async function POST(req: Request) {
   try {
@@ -38,6 +39,18 @@ export async function POST(req: Request) {
 
     if (!quoteRequestId || !cashPrice || !deliveryTime) {
       return NextResponse.json({ error: 'Cotação, valor à vista e tempo de entrega são obrigatórios' }, { status: 400 })
+    }
+
+    if (user.role === 'LOJISTA' || user.role === 'VENDEDOR') {
+      const quota = await canStoreRespondQuotation(user.storeProfile.id)
+      if (!quota.allowed) {
+        return NextResponse.json({
+          error: quota.message,
+          code: quota.code,
+          quota: { used: quota.used, limit: quota.limit, available: quota.available, remaining: quota.remaining, plan: quota.subscription.plan },
+          upgradeUrl: '/planos',
+        }, { status: 402 })
+      }
     }
 
     const proposal = await db.createProposal({

@@ -45,6 +45,11 @@ export default function Footer() {
                 </Link>
               </li>
               <li>
+                <Link href="/planos" className="hover:text-amber-500 dark:hover:text-amber-400 transition-colors">
+                  Planos e Preços para Lojistas
+                </Link>
+              </li>
+              <li>
                 <Link href="/cadastro?role=VENDEDOR" className="hover:text-amber-500 dark:hover:text-amber-400 transition-colors">
                   Cadastrar Minha Autopeça / Motopeça
                 </Link>

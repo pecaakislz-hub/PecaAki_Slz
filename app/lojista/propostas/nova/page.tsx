@@ -60,6 +60,10 @@ function NewProposalContent() {
       const data = await res.json()
 
       if (!res.ok) {
+        if (res.status === 402 && data.code === 'QUOTA_EXCEEDED') {
+          router.push('/planos?reason=quota')
+          return
+        }
         setError(data.error || 'Erro ao enviar proposta')
         setSubmitting(false)
         return
