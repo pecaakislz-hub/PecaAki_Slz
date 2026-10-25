@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
-import { Store, ShieldCheck, MapPin, Phone, Building, CheckCircle2, Award } from 'lucide-react'
+import { Store, ShieldCheck, MapPin, Phone, Building, CheckCircle2, Award, CreditCard, ArrowRight } from 'lucide-react'
 
 export default function LojistaPerfilPage() {
   const [user, setUser] = useState<any>(null)
@@ -77,6 +77,7 @@ export default function LojistaPerfilPage() {
           </div>
         </div>
       </div>
+      {['LOJISTA', 'VENDEDOR'].includes(user?.role) && <Link href="/planos" className="flex items-center justify-between gap-4 rounded-2xl border border-amber-200 bg-amber-50 p-4 text-amber-950 transition hover:border-amber-400 hover:bg-amber-100 dark:border-amber-900/50 dark:bg-amber-950/30 dark:text-amber-100 dark:hover:bg-amber-950/50"><span className="flex items-center gap-3"><span className="rounded-xl bg-amber-500 p-2 text-slate-950"><CreditCard className="h-4 w-4" /></span><span><strong className="block text-sm">Planos e créditos da loja</strong><small className="mt-1 block text-xs opacity-75">Visualize seu consumo, mude de plano e acompanhe sua evolução.</small></span></span><ArrowRight className="h-5 w-5 shrink-0" /></Link>}
     </div>
   )
 }
