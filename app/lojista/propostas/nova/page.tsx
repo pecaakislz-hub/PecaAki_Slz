@@ -4,6 +4,8 @@ import { useState, useEffect, Suspense } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import { Store, ArrowLeft, DollarSign, Clock, Truck, ShieldCheck, AlertCircle, ArrowRight } from 'lucide-react'
+import QuotaLimitModal from '@/components/subscriptions/QuotaLimitModal'
+import BuyExtraCreditsModal from '@/components/subscriptions/BuyExtraCreditsModal'
 
 function NewProposalContent() {
   const router = useRouter()
@@ -24,6 +26,8 @@ function NewProposalContent() {
 
   const [submitting, setSubmitting] = useState(false)
   const [error, setError] = useState('')
+  const [quotaModal, setQuotaModal] = useState<{ plan: string; message: string } | null>(null)
+  const [buyCredits, setBuyCredits] = useState(false)
 
   useEffect(() => {
     if (!cotacaoId) return
@@ -60,8 +64,9 @@ function NewProposalContent() {
       const data = await res.json()
 
       if (!res.ok) {
-        if (res.status === 402 && data.code === 'QUOTA_EXCEEDED') {
-          router.push('/planos?reason=quota')
+        if (res.status === 402 && ['QUOTA_EXCEEDED', 'STARTER_LIMIT_REACHED', 'EXTRA_CREDITS_REQUIRED'].includes(data.code)) {
+          setQuotaModal({ plan: data.quota?.plan || (data.code === 'STARTER_LIMIT_REACHED' ? 'STARTER' : 'PRO'), message: data.error || 'Sua cota de respostas foi atingida.' })
+          setSubmitting(false)
           return
         }
         setError(data.error || 'Erro ao enviar proposta')
@@ -83,6 +88,8 @@ function NewProposalContent() {
 
   return (
     <div className="max-w-2xl mx-auto py-6 space-y-6">
+      <QuotaLimitModal open={Boolean(quotaModal)} plan={quotaModal?.plan || 'STARTER'} message={quotaModal?.message || ''} onClose={() => setQuotaModal(null)} onBuyCredits={() => { setQuotaModal(null); setBuyCredits(true) }} />
+      <BuyExtraCreditsModal open={buyCredits} onClose={() => setBuyCredits(false)} onPurchased={() => setBuyCredits(false)} />
       <Link href="/lojista/radar" className="inline-flex items-center gap-2 text-slate-400 hover:text-amber-400 text-xs font-bold transition-colors">
         <ArrowLeft className="w-4 h-4" /> Voltar para o Radar de Cotações
       </Link>

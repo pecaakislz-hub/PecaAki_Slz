@@ -1,0 +1,10 @@
+'use client'
+
+import Link from 'next/link'
+import { ArrowRight, CreditCard, X } from 'lucide-react'
+
+export default function QuotaLimitModal({ open, plan, message, onClose, onBuyCredits }: { open: boolean; plan: string; message: string; onClose: () => void; onBuyCredits: () => void }) {
+  if (!open) return null
+  const starter = plan === 'STARTER'
+  return <div className="fixed inset-0 z-[85] flex items-end justify-center bg-slate-950/55 p-3 backdrop-blur-sm sm:items-center" role="dialog" aria-modal="true" aria-label="Limite de cota atingido"><button className="absolute inset-0" onClick={onClose} aria-label="Fechar" /><section className="relative w-full max-w-md rounded-3xl border border-slate-200 bg-white p-6 shadow-2xl dark:border-slate-700 dark:bg-slate-900"><button onClick={onClose} className="absolute right-4 top-4 rounded-xl p-2 text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800" aria-label="Fechar"><X className="h-5 w-5" /></button><div className="pr-7"><span className="inline-flex rounded-full bg-rose-100 px-2.5 py-1 text-[10px] font-black uppercase tracking-wider text-rose-700 dark:bg-rose-950/50 dark:text-rose-300">Cota esgotada</span><h2 className="mt-3 text-xl font-black text-slate-900 dark:text-white">Continue respondendo aos compradores</h2><p className="mt-2 text-sm leading-relaxed text-slate-600 dark:text-slate-300">{message}</p></div>{starter ? <Link href="/planos" onClick={onClose} className="mt-6 flex min-h-14 items-center justify-center gap-2 rounded-2xl bg-amber-500 text-sm font-black text-slate-950">Fazer Upgrade para o Plano Pro <ArrowRight className="h-5 w-5" /></Link> : <button onClick={onBuyCredits} className="mt-6 flex min-h-14 w-full items-center justify-center gap-2 rounded-2xl bg-amber-500 text-sm font-black text-slate-950"><CreditCard className="h-5 w-5" /> Comprar Créditos Extras (R$ 2,50/cada)</button>}<button onClick={onClose} className="mt-3 min-h-11 w-full rounded-xl border border-slate-200 text-xs font-bold text-slate-500 dark:border-slate-700 dark:text-slate-300">Agora não</button></section></div>
+}

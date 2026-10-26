@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server'
 import { getCurrentUser } from '@/lib/auth'
 import { db } from '@/lib/db'
-import { canStoreRespondQuotation } from '@/lib/subscriptions'
+import { canStoreRespondQuotation, consumeQuotationCredit } from '@/lib/subscriptions'
 
 export async function POST(req: Request) {
   try {
@@ -47,10 +47,19 @@ export async function POST(req: Request) {
         return NextResponse.json({
           error: quota.message,
           code: quota.code,
-          quota: { used: quota.used, limit: quota.limit, available: quota.available, remaining: quota.remaining, plan: quota.subscription.planTier },
+          quota: { used: quota.used, limit: quota.limit, available: quota.available, remaining: quota.remaining, plan: quota.subscription.planTier, sourceType: 'sourceType' in quota ? quota.sourceType : 'NONE' },
           upgradeUrl: '/planos',
         }, { status: 402 })
       }
+    }
+
+    let consumedSource: string | undefined
+    if (user.role === 'LOJISTA' || user.role === 'VENDEDOR') {
+      const consumed = await consumeQuotationCredit(user.storeProfile.id)
+      if (!consumed.consumed) {
+        return NextResponse.json({ error: 'Sua cota acabou antes do envio. Compre créditos extras para continuar.', code: 'EXTRA_CREDITS_REQUIRED', upgradeUrl: '/planos' }, { status: 402 })
+      }
+      consumedSource = consumed.sourceType
     }
 
     const proposal = await db.createProposal({
@@ -66,7 +75,7 @@ export async function POST(req: Request) {
       photoUrl: photoUrl || null
     })
 
-    return NextResponse.json({ success: true, proposal })
+    return NextResponse.json({ success: true, proposal, consumedSource })
   } catch (error) {
     console.error('Erro em POST /api/proposals:', error)
     return NextResponse.json({ error: 'Erro ao processar proposta' }, { status: 500 })
