@@ -47,7 +47,7 @@ export async function POST(req: Request) {
         return NextResponse.json({
           error: quota.message,
           code: quota.code,
-          quota: { used: quota.used, limit: quota.limit, available: quota.available, remaining: quota.remaining, plan: quota.subscription.plan },
+          quota: { used: quota.used, limit: quota.limit, available: quota.available, remaining: quota.remaining, plan: quota.subscription.planTier },
           upgradeUrl: '/planos',
         }, { status: 402 })
       }

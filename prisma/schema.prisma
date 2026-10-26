@@ -53,47 +53,70 @@ model StoreProfile {
   isVerified     Boolean  @default(true)
   createdAt      DateTime @default(now())
 
-  proposals    Proposal[]
-  purchases    Purchase[]
-  reviews      Review[]
-  subscription StoreSubscription?
-  creditWallet CreditWallet?
+  proposals      Proposal[]
+  purchaseOrders Purchase[]
+  reviews        Review[]
+  subscription   StoreSubscription?
+  purchases      CreditPurchase[]
+}
+
+enum PlanTier {
+  STARTER
+  PRO
+  PREMIUM
+}
+
+enum BillingCycle {
+  MONTHLY
+  ANNUALLY
+}
+
+enum SubscriptionStatus {
+  ACTIVE
+  PAST_DUE
+  CANCELED
+}
+
+enum PaymentStatus {
+  PENDING
+  PAID
+  FAILED
 }
 
 model StoreSubscription {
-  id                String       @id @default(uuid())
-  storeProfileId    String       @unique
-  storeProfile      StoreProfile @relation(fields: [storeProfileId], references: [id], onDelete: Cascade)
-  plan              String       @default("STARTER") // STARTER, PRO, PREMIUM
-  billingCycle      String       @default("MONTHLY") // MONTHLY, YEARLY
-  status            String       @default("ACTIVE") // ACTIVE, PENDING, CANCELED, PAST_DUE
-  monthlyQuoteLimit Int          @default(5)
-  extraCredits      Int          @default(0)
-  periodStart       DateTime     @default(now())
-  periodEnd         DateTime
-  createdAt         DateTime     @default(now())
-  updatedAt         DateTime     @updatedAt
-}
+  id                 String             @id @default(uuid())
+  storeProfileId     String             @unique
+  planTier           PlanTier           @default(STARTER)
+  billingCycle       BillingCycle       @default(MONTHLY)
+  status             SubscriptionStatus @default(ACTIVE)
+  monthlyQuota       Int                @default(5)
+  quotaUsed          Int                @default(0)
+  extraCredits       Int                @default(0)
+  currentPeriodStart DateTime           @default(now())
+  currentPeriodEnd   DateTime?
+  updatedAt          DateTime           @updatedAt
+  createdAt          DateTime           @default(now())
 
-model CreditWallet {
-  id             String           @id @default(uuid())
-  storeProfileId String           @unique
-  storeProfile   StoreProfile     @relation(fields: [storeProfileId], references: [id], onDelete: Cascade)
-  balance        Int              @default(0)
-  purchases      CreditPurchase[]
-  createdAt      DateTime         @default(now())
-  updatedAt      DateTime         @updatedAt
+  store     StoreProfile     @relation(fields: [storeProfileId], references: [id], onDelete: Cascade)
+  purchases CreditPurchase[]
 }
 
 model CreditPurchase {
-  id         String       @id @default(uuid())
-  walletId   String
-  wallet     CreditWallet @relation(fields: [walletId], references: [id], onDelete: Cascade)
-  credits    Int
-  unitPrice  Float        @default(2.5)
-  totalPrice Float
-  status     String       @default("PENDING") // PENDING, PAID, CANCELED
-  createdAt  DateTime     @default(now())
+  id                    String        @id @default(uuid())
+  storeProfileId        String
+  subscriptionId        String?
+  planTier              PlanTier?
+  billingCycle          BillingCycle?
+  isExtraCredits        Boolean       @default(false)
+  quantity              Int           @default(1)
+  amount                Float
+  status                PaymentStatus @default(PENDING)
+  paymentMethod         String?
+  externalTransactionId String?
+  createdAt             DateTime      @default(now())
+
+  store        StoreProfile       @relation(fields: [storeProfileId], references: [id], onDelete: Cascade)
+  subscription StoreSubscription? @relation(fields: [subscriptionId], references: [id], onDelete: SetNull)
 }
 
 model Vehicle {

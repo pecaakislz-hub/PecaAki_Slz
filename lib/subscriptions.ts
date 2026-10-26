@@ -19,32 +19,30 @@ export async function ensureStarterSubscription(storeProfileId: string) {
     update: {},
     create: {
       storeProfileId,
-      plan: 'STARTER',
+      planTier: 'STARTER',
       billingCycle: 'MONTHLY',
       status: 'ACTIVE',
-      monthlyQuoteLimit: PLAN_CATALOG.STARTER.monthlyLimit,
-      periodStart: now,
-      periodEnd: endOfMonth(now),
+      monthlyQuota: PLAN_CATALOG.STARTER.monthlyLimit,
+      quotaUsed: 0,
+      extraCredits: 0,
+      currentPeriodStart: now,
+      currentPeriodEnd: endOfMonth(now),
     },
-  })
-  await prisma.creditWallet.upsert({
-    where: { storeProfileId },
-    update: {},
-    create: { storeProfileId, balance: 0 },
   })
   return subscription
 }
 
 async function refreshSubscriptionPeriod(subscription: any): Promise<any> {
   const now = new Date()
-  if (subscription.periodEnd >= now) return subscription
-  const plan = (PLAN_CATALOG[subscription.plan as PlanCode] || PLAN_CATALOG.STARTER)
+  if (!subscription.currentPeriodEnd || subscription.currentPeriodEnd >= now) return subscription
+  const plan = (PLAN_CATALOG[subscription.planTier as PlanCode] || PLAN_CATALOG.STARTER)
   return prisma.storeSubscription.update({
-    where: { id: subscription.id },
+      where: { id: subscription.id },
     data: {
-      periodStart: now,
-      periodEnd: endOfMonth(now),
-      monthlyQuoteLimit: plan.monthlyLimit,
+      currentPeriodStart: now,
+      currentPeriodEnd: endOfMonth(now),
+      monthlyQuota: plan.monthlyLimit,
+      quotaUsed: 0,
       status: subscription.status === 'ACTIVE' ? 'ACTIVE' : subscription.status,
     },
   })
@@ -53,18 +51,17 @@ async function refreshSubscriptionPeriod(subscription: any): Promise<any> {
 export async function getStoreSubscriptionOverview(storeProfileId: string) {
   let subscription = await ensureStarterSubscription(storeProfileId)
   subscription = await refreshSubscriptionPeriod(subscription)
-  const wallet = await prisma.creditWallet.findUnique({ where: { storeProfileId } })
   const used = await prisma.proposal.count({
-    where: { storeProfileId, createdAt: { gte: subscription.periodStart, lte: new Date() } },
+    where: { storeProfileId, createdAt: { gte: subscription.currentPeriodStart, lte: new Date() } },
   })
-  const available = subscription.monthlyQuoteLimit + subscription.extraCredits
-  const plan = (PLAN_CATALOG[subscription.plan as PlanCode] || PLAN_CATALOG.STARTER)
+  const available = subscription.monthlyQuota + subscription.extraCredits
+  const plan = (PLAN_CATALOG[subscription.planTier as PlanCode] || PLAN_CATALOG.STARTER)
   return {
     subscription,
-    wallet: wallet || { balance: 0 },
+    wallet: { balance: subscription.extraCredits },
     plan,
     used,
-    limit: subscription.monthlyQuoteLimit,
+    limit: subscription.monthlyQuota,
     extraCredits: subscription.extraCredits,
     available,
     remaining: Math.max(available - used, 0),
