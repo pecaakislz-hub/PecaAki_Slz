@@ -4,7 +4,7 @@ O Manus trabalha no ambiente remoto e não consegue gravar diretamente em `C:\Pr
 
 1. O Manus altera e testa o projeto no Sandbox.
 2. As alterações validadas são publicadas no branch `main` do GitHub.
-3. O notebook verifica `origin/main` a cada cinco minutos.
+3. O notebook verifica `origin/main` uma vez a cada hora.
 4. O notebook executa `git pull --ff-only` somente quando não existem alterações locais.
 
 O modo `--ff-only` impede que a tarefa faça merge automático ou sobrescreva trabalho local.
@@ -25,7 +25,7 @@ A tarefa criada será:
 PecaAki Slz - Sincronizacao GitHub
 ```
 
-Ela verifica o GitHub a cada cinco minutos e grava o histórico em:
+Ela verifica o GitHub uma vez a cada hora e grava o histórico em:
 
 ```text
 %LOCALAPPDATA%\PecaAkiSlz\sync.log
